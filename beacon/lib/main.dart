@@ -40,26 +40,7 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
 
-              const SizedBox(height: 80),
-
-              // Icon
-              const Icon(
-                Icons.travel_explore,
-                size: 72,
-                color: Color(0xFF2979FF),
-              ),
-              const Text(
-                'CHANGE THIS ICON',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A2E),
-                  letterSpacing: -1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 90),
 
               // App name
               const Text(
