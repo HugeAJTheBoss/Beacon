@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'student_screen.dart';
+import 'student_signup_screen.dart';
+import 'org_signup_screen.dart';
+import 'signin_screen.dart';
 
-// ── Change your palette here, it updates everywhere ──
 class AppColors {
   static const primary = Color(0xFF2979FF);
   static const background = Color(0xFFF0F4FF);
@@ -75,17 +76,24 @@ class WelcomeScreen extends StatelessWidget {
                 label: 'I\'m a Student',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const StudentScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const StudentSignupScreen()),
                 ),
               ),
               const SizedBox(height: 12),
               _OutlineButton(
                 label: 'I\'m an Organization',
-                onTap: () {}, // org screen coming soon
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const OrgSignupScreen()),
+                ),
               ),
               const SizedBox(height: 16),
               TextButton(
-                onPressed: () {}, // sign in screen coming soon
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignInScreen()),
+                ),
                 child: const Text(
                   'Already have an account? Sign in',
                   style: TextStyle(color: AppColors.subtle, fontSize: 14),
