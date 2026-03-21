@@ -187,8 +187,8 @@ class _StudentSignupScreenState extends State<StudentSignupScreen> {
                 Slider(
                   value: _age,
                   min: 5,
-                  max: 18,
-                  divisions: 13,
+                  max: 24,
+                  divisions: 19,
                   activeColor: AppColors.primary,
                   onChanged: (val) => setState(() => _age = val),
                 ),
@@ -300,6 +300,7 @@ class _FormField extends StatelessWidget {
     required this.hint,
     required this.validator,
     this.keyboardType = TextInputType.text,
+    // ignore: unused_element_parameter
     this.maxLines = 1,
   });
 

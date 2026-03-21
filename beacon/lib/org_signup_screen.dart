@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main.dart' show AppColors;
 import 'signin_screen.dart';
+import 'org_dashboard_screen.dart';
 
 class OrgSignupScreen extends StatefulWidget {
   const OrgSignupScreen({super.key});
@@ -248,6 +249,18 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   child: const Text(
                     'Already have an account? Sign in',
                     style: TextStyle(color: AppColors.subtle, fontSize: 14),
+                  ),
+                ),
+
+                // DEV ONLY — remove before launch
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
+                  ),
+                  child: const Text(
+                    '[DEV] Skip to Dashboard',
+                    style: TextStyle(color: Colors.red, fontSize: 13),
                   ),
                 ),
                 const SizedBox(height: 32),

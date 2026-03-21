@@ -29,7 +29,6 @@ class _StudentScreenState extends State<StudentScreen> {
     'Physics': true,
   };
 
-  // Dummy data — replace with Firestore later
   final List<Map<String, dynamic>> _allEvents = [
     {
       'title': 'WPI Robotics Summer Camp',
@@ -98,6 +97,49 @@ class _StudentScreenState extends State<StudentScreen> {
     }).toList();
   }
 
+  void _confirmSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Sign Out?',
+          style: TextStyle(
+              fontWeight: FontWeight.w800, color: AppColors.title),
+        ),
+        content: const Text(
+          'You will be returned to the home screen.',
+          style: TextStyle(color: AppColors.subtle, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.subtle),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Firebase Auth sign out goes here
+              Navigator.popUntil(context, (r) => r.isFirst);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,18 +153,97 @@ class _StudentScreenState extends State<StudentScreen> {
           'Beacon',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            tooltip: 'Profile',
+          ),
+        ),
         actions: [
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.tune),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
               tooltip: 'Filters',
             ),
           ),
         ],
       ),
 
+      // profile drawer — left side
       drawer: Drawer(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                const Icon(
+                  Icons.account_circle,
+                  size: 64,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'My Profile',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.title,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Student',
+                  style: TextStyle(color: AppColors.subtle, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.settings_outlined,
+                      color: AppColors.primary),
+                  title: const Text(
+                    'Settings & Interests',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.title),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // TODO: navigate to student profile screen
+                  },
+                ),
+                const Divider(),
+                const Spacer(),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmSignOut(context),
+                    icon: const Icon(Icons.logout, size: 18),
+                    label: const Text('Sign Out'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
+      ),
+
+      // filter drawer — right side
+      endDrawer: Drawer(
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -146,15 +267,12 @@ class _StudentScreenState extends State<StudentScreen> {
                     ),
                   ],
                 ),
-
                 const Divider(),
-
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         const SizedBox(height: 16),
                         _FilterLabel(
                           title: 'Distance',
@@ -166,9 +284,9 @@ class _StudentScreenState extends State<StudentScreen> {
                           max: 100,
                           divisions: 19,
                           activeColor: AppColors.primary,
-                          onChanged: (val) => setState(() => _distance = val),
+                          onChanged: (val) =>
+                              setState(() => _distance = val),
                         ),
-
                         const SizedBox(height: 8),
                         _FilterLabel(
                           title: 'Your Age',
@@ -182,7 +300,6 @@ class _StudentScreenState extends State<StudentScreen> {
                           activeColor: AppColors.primary,
                           onChanged: (val) => setState(() => _age = val),
                         ),
-
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Type'),
                         const SizedBox(height: 4),
@@ -194,7 +311,6 @@ class _StudentScreenState extends State<StudentScreen> {
                               onChanged: (val) =>
                                   setState(() => _types[type] = val!),
                             )),
-
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Category'),
                         const SizedBox(height: 4),
@@ -210,7 +326,6 @@ class _StudentScreenState extends State<StudentScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -240,7 +355,8 @@ class _StudentScreenState extends State<StudentScreen> {
           ? const Center(
               child: Text(
                 'No opportunities match your filters.',
-                style: TextStyle(color: AppColors.subtle, fontSize: 16),
+                style:
+                    TextStyle(color: AppColors.subtle, fontSize: 16),
               ),
             )
           : ListView.builder(
@@ -325,7 +441,8 @@ class _EventCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             event['org'],
-            style: const TextStyle(fontSize: 14, color: AppColors.subtle),
+            style:
+                const TextStyle(fontSize: 14, color: AppColors.subtle),
           ),
           const SizedBox(height: 10),
           const Divider(height: 1),
@@ -337,7 +454,8 @@ class _EventCard extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 '${event['location']} • ${event['distance'].round()} mi',
-                style: const TextStyle(fontSize: 13, color: AppColors.subtle),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.subtle),
               ),
               const Spacer(),
               const Icon(Icons.calendar_today_outlined,
@@ -345,7 +463,8 @@ class _EventCard extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 event['date'],
-                style: const TextStyle(fontSize: 13, color: AppColors.subtle),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.subtle),
               ),
             ],
           ),

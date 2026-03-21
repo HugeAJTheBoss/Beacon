@@ -17,6 +17,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool _passwordVisible = false;
   bool _isLoading = false;
+  String _role = 'student';
 
   @override
   void dispose() {
@@ -29,19 +30,20 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // TODO: replace this with real Firebase Auth sign in
-    // After signing in, check Firestore for user role:
-    //   if (user.role == 'student') → StudentScreen
-    //   if (user.role == 'org') → OrgDashboardScreen
+    // TODO: replace with real Firebase Auth sign in
+    // After signing in, check Firestore for user.role and route accordingly
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() => _isLoading = false);
     if (!mounted) return;
 
-    // placeholder: goes to student screen until Firebase is wired up
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const StudentScreen()),
+      MaterialPageRoute(
+        builder: (_) => _role == 'student'
+            ? const StudentScreen()
+            : const OrgDashboardScreen(),
+      ),
     );
   }
 
@@ -82,7 +84,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 const SizedBox(height: 28),
 
-                // Google sign in
                 OutlinedButton.icon(
                   onPressed: _signInWithGoogle,
                   icon: const Icon(Icons.g_mobiledata, size: 24),
@@ -106,7 +107,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         'or sign in with email',
-                        style: TextStyle(color: AppColors.subtle, fontSize: 13),
+                        style:
+                            TextStyle(color: AppColors.subtle, fontSize: 13),
                       ),
                     ),
                     Expanded(child: Divider()),
@@ -115,7 +117,70 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 const SizedBox(height: 20),
 
-                // email field
+                // role selector
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _role = 'student'),
+                          child: Container(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _role == 'student'
+                                  ? AppColors.primary
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Student',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: _role == 'student'
+                                    ? Colors.white
+                                    : AppColors.subtle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _role = 'org'),
+                          child: Container(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _role == 'org'
+                                  ? AppColors.primary
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Organization',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: _role == 'org'
+                                    ? Colors.white
+                                    : AppColors.subtle,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: TextFormField(
@@ -138,7 +203,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                 ),
 
-                // password field
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: TextFormField(
@@ -168,7 +232,6 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                 ),
 
-                // forgot password
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -213,7 +276,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(height: 16),
 
                 TextButton(
-                  onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                  onPressed: () =>
+                      Navigator.popUntil(context, (route) => route.isFirst),
                   child: const Text(
                     'Don\'t have an account? Sign up',
                     style: TextStyle(color: AppColors.subtle, fontSize: 14),
