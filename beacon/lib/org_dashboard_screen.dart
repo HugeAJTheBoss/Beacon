@@ -149,6 +149,11 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.logout, size: 20),
+          onPressed: () => _confirmSignOut(context),
+          tooltip: 'Sign Out',
+        ),
         title: const Text(
           'Dashboard',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -187,27 +192,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
                       );
                     },
                   ),
-          ),
-
-          // sign out button at the bottom
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _confirmSignOut(context),
-                icon: const Icon(Icons.logout, size: 18),
-                label: const Text('Sign Out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  side: const BorderSide(color: Colors.red),
-                ),
-              ),
-            ),
           ),
         ],
       ),
