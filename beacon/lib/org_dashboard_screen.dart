@@ -408,7 +408,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     'Computer Science', 'Engineering', 'Physics'
   ];
   final List<String> _types = [
-    'Event', 'Club', 'Internship', 'Volunteering'
+    'Event', 'Club', 'Volunteering'
   ];
   final List<String> _statuses = ['Upcoming', 'Draft', 'Past'];
 

@@ -63,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Find STEM clubs, internships, and\nevents near you in Massachusetts.',
+                'Find STEM clubs, events, and\nvolunteering opportunities near you in Massachusetts.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

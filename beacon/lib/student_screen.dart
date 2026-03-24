@@ -18,7 +18,6 @@ class _StudentScreenState extends State<StudentScreen> {
 
   final Map<String, bool> _types = {
     'Club': true,
-    'Internship': true,
     'Event': true,
     'Volunteering': true,
   };
@@ -46,14 +45,14 @@ class _StudentScreenState extends State<StudentScreen> {
       'ageMax': 18,
     },
     {
-      'title': 'MassBio High School Internship',
+      'title': 'MassBio Community Lab Volunteers',
       'org': 'MassBio',
       'location': 'Boston',
       'distance': 45.0,
       'date': 'July 1, 2026',
       'link': 'https://www.massbio.org',
       'category': 'Biology',
-      'type': 'Internship',
+      'type': 'Volunteering',
       'ageMin': 15,
       'ageMax': 18,
     },
@@ -477,25 +476,6 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Apply Filters',
-                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
