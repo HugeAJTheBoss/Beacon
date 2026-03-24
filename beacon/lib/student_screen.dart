@@ -7,7 +7,6 @@ import 'main.dart' show AppColors;
 
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
-// use date of brith
   @override
   State<StudentScreen> createState() => _StudentScreenState();
 }
@@ -422,6 +421,155 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
+  void _openSettingsAndInterests() {
+    final updatedTypes = Map<String, bool>.from(_types);
+    final updatedCategories = Map<String, bool>.from(_categories);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.72,
+              minChildSize: 0.5,
+              maxChildSize: 0.92,
+              builder: (_, scrollController) => Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE5E7EB),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          Icon(Icons.tune, color: AppColors.primary),
+                          SizedBox(width: 8),
+                          Text(
+                            'Settings & Interests',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.title,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Pick your subjects and the type of opportunities you want to see.',
+                        style: TextStyle(color: AppColors.subtle, height: 1.4),
+                      ),
+                    ),
+                    const Divider(height: 24),
+                    Expanded(
+                      child: ListView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        children: [
+                          const _SectionTitle(title: 'Type of Opportunity'),
+                          const SizedBox(height: 6),
+                          ...updatedTypes.keys.map(
+                            (type) => CheckboxListTile(
+                              value: updatedTypes[type],
+                              onChanged: (val) =>
+                                  setModalState(() => updatedTypes[type] = val!),
+                              activeColor: AppColors.primary,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(type),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          const _SectionTitle(title: 'Subjects of Interest'),
+                          const SizedBox(height: 6),
+                          ...updatedCategories.keys.map(
+                            (category) => CheckboxListTile(
+                              value: updatedCategories[category],
+                              onChanged: (val) => setModalState(
+                                  () => updatedCategories[category] = val!),
+                              activeColor: AppColors.primary,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(category),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                    SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final hasType =
+                                  updatedTypes.values.any((selected) => selected);
+                              final hasCategory = updatedCategories.values
+                                  .any((selected) => selected);
+
+                              if (!hasType || !hasCategory) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Select at least one type and one subject.'),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              setState(() {
+                                _types
+                                    .updateAll((key, value) => updatedTypes[key] ?? false);
+                                _categories.updateAll(
+                                    (key, value) => updatedCategories[key] ?? false);
+                              });
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Save Preferences',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -498,7 +646,7 @@ class _StudentScreenState extends State<StudentScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: navigate to student profile screen
+                    _openSettingsAndInterests();
                   },
                 ),
                 const Divider(),
