@@ -4,6 +4,7 @@ import 'firebase_options.dart';
 import 'student_signup_screen.dart';
 import 'org_signup_screen.dart';
 import 'signin_screen.dart';
+import 'guest_screen.dart';
 
 class AppColors {
   static const primary = Color(0xFF2979FF);
@@ -89,6 +90,17 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const GuestScreen()),
+                ),
+                child: const Text(
+                  'Continue as guest',
+                  style: TextStyle(color: AppColors.primary, fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.push(
                   context,
