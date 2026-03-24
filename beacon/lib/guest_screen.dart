@@ -114,49 +114,6 @@ class _GuestScreenState extends State<GuestScreen> {
     }).toList();
   }
 
-  void _confirmSignOut(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Sign Out?',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: AppColors.title,
-          ),
-        ),
-        content: const Text(
-          'You will be returned to the home screen.',
-          style: TextStyle(color: AppColors.subtle, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.subtle),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Firebase Auth sign out goes here
-              Navigator.popUntil(context, (r) => r.isFirst);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text('Sign Out'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showReportDialog(Map<String, dynamic> event) {
     String? selectedReason;
@@ -467,36 +424,6 @@ class _GuestScreenState extends State<GuestScreen> {
                 onReport: () => _showReportDialog(_filteredEvents[index]),
               ),
             ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-    );
-  }
-}
-
-class _FilterLabel extends StatelessWidget {
-  final String title;
-  final String value;
-  const _FilterLabel({required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _SectionTitle(title: title),
-        Text(value, style: const TextStyle(color: AppColors.primary)),
-      ],
     );
   }
 }
