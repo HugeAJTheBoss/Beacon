@@ -19,7 +19,7 @@ class _StudentSignupScreenState extends State<StudentSignupScreen> {
 
   bool _passwordVisible = false;
   bool _isLoading = false;
-  double _age = 14;
+  DateTime? _dateOfBirth;
 
   final Map<String, bool> _interests = {
     'Robotics': false,
@@ -56,6 +56,28 @@ class _StudentSignupScreenState extends State<StudentSignupScreen> {
 
   void _signUpWithGoogle() {
     // TODO: implement Google Sign-In
+  }
+
+  Future<void> _pickDateOfBirth(FormFieldState<DateTime> field) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ?? DateTime(now.year - 14, now.month, now.day),
+      firstDate: DateTime(now.year - 100),
+      lastDate: now,
+    );
+
+    if (picked != null) {
+      setState(() => _dateOfBirth = picked);
+      field.didChange(picked);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final mm = date.month.toString().padLeft(2, '0');
+    final dd = date.day.toString().padLeft(2, '0');
+    final yyyy = date.year.toString();
+    return '$mm/$dd/$yyyy';
   }
 
   @override
@@ -170,27 +192,49 @@ class _StudentSignupScreenState extends State<StudentSignupScreen> {
                       val!.length != 5 ? 'Enter a valid zip code' : null,
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Your Age',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 16),
-                    ),
-                    Text(
-                      '${_age.round()}',
-                      style: const TextStyle(color: AppColors.primary),
-                    ),
-                  ],
+                const Text(
+                  'Date of Birth',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
-                Slider(
-                  value: _age,
-                  min: 5,
-                  max: 24,
-                  divisions: 19,
-                  activeColor: AppColors.primary,
-                  onChanged: (val) => setState(() => _age = val),
+                const SizedBox(height: 8),
+                FormField<DateTime>(
+                  initialValue: _dateOfBirth,
+                  validator: (value) =>
+                      value == null ? 'Date of birth is required' : null,
+                  builder: (field) {
+                    return InkWell(
+                      onTap: () => _pickDateOfBirth(field),
+                      borderRadius: BorderRadius.circular(12),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: 'Select your date of birth',
+                          errorText: field.errorText,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          suffixIcon: const Icon(
+                            Icons.calendar_today_outlined,
+                            color: AppColors.subtle,
+                            size: 20,
+                          ),
+                        ),
+                        child: Text(
+                          _dateOfBirth == null
+                              ? 'Select your date of birth'
+                              : _formatDate(_dateOfBirth!),
+                          style: TextStyle(
+                            color: _dateOfBirth == null
+                                ? AppColors.subtle
+                                : AppColors.title,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 const Text(

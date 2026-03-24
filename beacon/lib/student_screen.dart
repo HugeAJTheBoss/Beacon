@@ -3,13 +3,12 @@ import 'main.dart' show AppColors;
 
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
-
+// use date of brith
   @override
   State<StudentScreen> createState() => _StudentScreenState();
 }
 
 class _StudentScreenState extends State<StudentScreen> {
-
   double _distance = 25;
   double _age = 14;
 
@@ -101,12 +100,13 @@ class _StudentScreenState extends State<StudentScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Sign Out?',
           style: TextStyle(
-              fontWeight: FontWeight.w800, color: AppColors.title),
+            fontWeight: FontWeight.w800,
+            color: AppColors.title,
+          ),
         ),
         content: const Text(
           'You will be returned to the home screen.',
@@ -137,6 +137,147 @@ class _StudentScreenState extends State<StudentScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showReportDialog(Map<String, dynamic> event) {
+    String? selectedReason;
+    final TextEditingController detailsController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Report Event',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.title,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        event['title'],
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.subtle,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Why are you reporting this?',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.title,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...[
+                        'Incorrect information',
+                        'Spam or scam',
+                        'Inappropriate content',
+                        'Duplicate listing',
+                        'Other',
+                      ].map(
+                        (reason) => RadioListTile<String>(
+                          value: reason,
+                          groupValue: selectedReason,
+                          activeColor: AppColors.primary,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(reason),
+                          onChanged: (value) {
+                            setModalState(() => selectedReason = value);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: detailsController,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Add details (optional)',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                const BorderSide(color: AppColors.primary),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: selectedReason == null
+                              ? null
+                              : () {
+                                  // TODO: send report to backend / Firestore
+                                  // Example payload:
+                                  // {
+                                  //   'eventTitle': event['title'],
+                                  //   'reason': selectedReason,
+                                  //   'details': detailsController.text.trim(),
+                                  //   'reportedAt': DateTime.now().toIso8601String(),
+                                  // }
+
+                                  Navigator.pop(context);
+
+                                  ScaffoldMessenger.of(this.context)
+                                      .showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Report submitted for "${event['title']}"',
+                                      ),
+                                    ),
+                                  );
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Submit Report',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -171,7 +312,6 @@ class _StudentScreenState extends State<StudentScreen> {
         ],
       ),
 
-      // profile drawer — left side
       drawer: Drawer(
         child: SafeArea(
           child: Padding(
@@ -204,13 +344,16 @@ class _StudentScreenState extends State<StudentScreen> {
                 const SizedBox(height: 12),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.settings_outlined,
-                      color: AppColors.primary),
+                  leading: const Icon(
+                    Icons.settings_outlined,
+                    color: AppColors.primary,
+                  ),
                   title: const Text(
                     'Settings & Interests',
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.title),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.title,
+                    ),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -242,7 +385,6 @@ class _StudentScreenState extends State<StudentScreen> {
         ),
       ),
 
-      // filter drawer — right side
       endDrawer: Drawer(
         child: SafeArea(
           child: Padding(
@@ -284,8 +426,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           max: 100,
                           divisions: 19,
                           activeColor: AppColors.primary,
-                          onChanged: (val) =>
-                              setState(() => _distance = val),
+                          onChanged: (val) => setState(() => _distance = val),
                         ),
                         const SizedBox(height: 8),
                         _FilterLabel(
@@ -303,25 +444,29 @@ class _StudentScreenState extends State<StudentScreen> {
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Type'),
                         const SizedBox(height: 4),
-                        ..._types.keys.map((type) => CheckboxListTile(
-                              title: Text(type),
-                              value: _types[type],
-                              activeColor: AppColors.primary,
-                              contentPadding: EdgeInsets.zero,
-                              onChanged: (val) =>
-                                  setState(() => _types[type] = val!),
-                            )),
+                        ..._types.keys.map(
+                          (type) => CheckboxListTile(
+                            title: Text(type),
+                            value: _types[type],
+                            activeColor: AppColors.primary,
+                            contentPadding: EdgeInsets.zero,
+                            onChanged: (val) =>
+                                setState(() => _types[type] = val!),
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Category'),
                         const SizedBox(height: 4),
-                        ..._categories.keys.map((cat) => CheckboxListTile(
-                              title: Text(cat),
-                              value: _categories[cat],
-                              activeColor: AppColors.primary,
-                              contentPadding: EdgeInsets.zero,
-                              onChanged: (val) =>
-                                  setState(() => _categories[cat] = val!),
-                            )),
+                        ..._categories.keys.map(
+                          (cat) => CheckboxListTile(
+                            title: Text(cat),
+                            value: _categories[cat],
+                            activeColor: AppColors.primary,
+                            contentPadding: EdgeInsets.zero,
+                            onChanged: (val) =>
+                                setState(() => _categories[cat] = val!),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -355,15 +500,16 @@ class _StudentScreenState extends State<StudentScreen> {
           ? const Center(
               child: Text(
                 'No opportunities match your filters.',
-                style:
-                    TextStyle(color: AppColors.subtle, fontSize: 16),
+                style: TextStyle(color: AppColors.subtle, fontSize: 16),
               ),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _filteredEvents.length,
-              itemBuilder: (context, index) =>
-                  _EventCard(event: _filteredEvents[index]),
+              itemBuilder: (context, index) => _EventCard(
+                event: _filteredEvents[index],
+                onReport: () => _showReportDialog(_filteredEvents[index]),
+              ),
             ),
     );
   }
@@ -401,7 +547,12 @@ class _FilterLabel extends StatelessWidget {
 
 class _EventCard extends StatelessWidget {
   final Map<String, dynamic> event;
-  const _EventCard({required this.event});
+  final VoidCallback onReport;
+
+  const _EventCard({
+    required this.event,
+    required this.onReport,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -427,9 +578,18 @@ class _EventCard extends StatelessWidget {
               _Chip(label: event['category'], color: AppColors.primary),
               const SizedBox(width: 8),
               _Chip(label: event['type'], color: const Color(0xFF00BFA5)),
+              const Spacer(),
+              IconButton(
+                onPressed: onReport,
+                icon: const Icon(
+                  Icons.flag_outlined,
+                  color: Colors.redAccent,
+                ),
+                tooltip: 'Report event',
+              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           Text(
             event['title'],
             style: const TextStyle(
@@ -441,30 +601,33 @@ class _EventCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             event['org'],
-            style:
-                const TextStyle(fontSize: 14, color: AppColors.subtle),
+            style: const TextStyle(fontSize: 14, color: AppColors.subtle),
           ),
           const SizedBox(height: 10),
           const Divider(height: 1),
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined,
-                  size: 15, color: AppColors.subtle),
+              const Icon(
+                Icons.location_on_outlined,
+                size: 15,
+                color: AppColors.subtle,
+              ),
               const SizedBox(width: 4),
               Text(
                 '${event['location']} • ${event['distance'].round()} mi',
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.subtle),
+                style: const TextStyle(fontSize: 13, color: AppColors.subtle),
               ),
               const Spacer(),
-              const Icon(Icons.calendar_today_outlined,
-                  size: 13, color: AppColors.subtle),
+              const Icon(
+                Icons.calendar_today_outlined,
+                size: 13,
+                color: AppColors.subtle,
+              ),
               const SizedBox(width: 4),
               Text(
                 event['date'],
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.subtle),
+                style: const TextStyle(fontSize: 13, color: AppColors.subtle),
               ),
             ],
           ),
