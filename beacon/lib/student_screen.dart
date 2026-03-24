@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'link_opener_stub.dart'
+  if (dart.library.html) 'link_opener_web.dart';
 import 'main.dart' show AppColors;
 
 class StudentScreen extends StatefulWidget {
@@ -35,6 +39,7 @@ class _StudentScreenState extends State<StudentScreen> {
       'location': 'Worcester',
       'distance': 2.0,
       'date': 'June 14, 2026',
+      'link': 'https://www.wpi.edu',
       'category': 'Robotics',
       'type': 'Event',
       'ageMin': 12,
@@ -46,6 +51,7 @@ class _StudentScreenState extends State<StudentScreen> {
       'location': 'Boston',
       'distance': 45.0,
       'date': 'July 1, 2026',
+      'link': 'https://www.massbio.org',
       'category': 'Biology',
       'type': 'Internship',
       'ageMin': 15,
@@ -57,6 +63,7 @@ class _StudentScreenState extends State<StudentScreen> {
       'location': 'Worcester',
       'distance': 3.0,
       'date': 'Every Tuesday',
+      'link': 'https://www.worcesteracademy.org',
       'category': 'Math',
       'type': 'Club',
       'ageMin': 11,
@@ -68,6 +75,7 @@ class _StudentScreenState extends State<StudentScreen> {
       'location': 'Worcester',
       'distance': 5.0,
       'date': 'Every Wednesday',
+      'link': 'https://girlswhocode.com',
       'category': 'Computer Science',
       'type': 'Club',
       'ageMin': 13,
@@ -79,6 +87,7 @@ class _StudentScreenState extends State<StudentScreen> {
       'location': 'Cambridge',
       'distance': 48.0,
       'date': 'August 3, 2026',
+      'link': 'https://www.mit.edu',
       'category': 'Computer Science',
       'type': 'Event',
       'ageMin': 14,
@@ -556,6 +565,43 @@ class _EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final link = (event['link'] as String?)?.trim() ?? '';
+
+    Future<void> openWebsite() async {
+      if (link.isEmpty) return;
+      final normalizedLink = link.startsWith('http://') || link.startsWith('https://')
+          ? link
+          : 'https://$link';
+      final uri = Uri.tryParse(normalizedLink);
+      if (uri == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid website link for this event.')),
+        );
+        return;
+      }
+
+      var opened = await openInBrowserTab(normalizedLink);
+
+      if (!opened) {
+        try {
+          // Android/iOS/desktop path.
+          opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+          if (!opened) {
+            opened = await launchUrl(uri, mode: LaunchMode.platformDefault);
+          }
+        } on MissingPluginException {
+          // If plugin registration is missing, still allow web fallback.
+          opened = await openInBrowserTab(normalizedLink);
+        }
+      }
+
+      if (!opened && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open website link on this device.')),
+        );
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -630,6 +676,19 @@ class _EventCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 13, color: AppColors.subtle),
               ),
             ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: link.isEmpty ? null : openWebsite,
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: const Text('Visit Organization Website'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.zero,
+              ),
+            ),
           ),
         ],
       ),

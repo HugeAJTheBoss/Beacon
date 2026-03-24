@@ -18,7 +18,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       'type': 'Event',
       'date': 'June 14, 2026',
       'status': 'Upcoming',
-      'signups': 12,
+      'websiteVisits': 12,
       'capacity': 30,
     },
     {
@@ -27,7 +27,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       'type': 'Club',
       'date': 'Every Monday',
       'status': 'Upcoming',
-      'signups': 8,
+      'websiteVisits': 8,
       'capacity': 20,
     },
   ];
@@ -225,9 +225,9 @@ class _OrgEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final signups = event['signups'] as int;
+    final websiteVisits = (event['websiteVisits'] ?? event['signups'] ?? 0) as int;
     final capacity = event['capacity'] as int;
-    final fillPercent = capacity > 0 ? signups / capacity : 0.0;
+    final fillPercent = capacity > 0 ? websiteVisits / capacity : 0.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -280,12 +280,12 @@ class _OrgEventCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // signup progress bar
+          // website traffic progress bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$signups / $capacity signed up',
+                '$websiteVisits / $capacity website visits',
                 style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.subtle,
@@ -460,7 +460,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
       'capacity': int.tryParse(_capacityController.text) ?? 0,
       'link': _linkController.text,
       'status': _status,
-      'signups': widget.existingEvent?['signups'] ?? 0,
+      'websiteVisits': widget.existingEvent?['websiteVisits'] ?? widget.existingEvent?['signups'] ?? 0,
     });
     Navigator.pop(context);
   }
@@ -663,7 +663,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
 
                         _SheetField(
                           controller: _linkController,
-                          label: 'Application / Registration Link',
+                          label: 'Organization Website Link',
                           hint: 'https://',
                           keyboardType: TextInputType.url,
                           validator: (val) =>
