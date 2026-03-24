@@ -39,6 +39,8 @@ class _StudentScreenState extends State<StudentScreen> {
       'distance': 2.0,
       'date': 'June 14, 2026',
       'link': 'https://www.wpi.edu',
+      'description':
+          'Hands-on robotics sessions for middle and high school students with team projects and mentor support.',
       'category': 'Robotics',
       'type': 'Event',
       'ageMin': 12,
@@ -51,6 +53,8 @@ class _StudentScreenState extends State<StudentScreen> {
       'distance': 45.0,
       'date': 'July 1, 2026',
       'link': 'https://www.massbio.org',
+        'description':
+          'Volunteer in community STEM labs, help younger students, and assist with weekend science activities.',
       'category': 'Biology',
       'type': 'Volunteering',
       'ageMin': 15,
@@ -63,6 +67,8 @@ class _StudentScreenState extends State<StudentScreen> {
       'distance': 3.0,
       'date': 'Every Tuesday',
       'link': 'https://www.worcesteracademy.org',
+        'description':
+          'Weekly math challenge practice with peer-led sessions and competition prep.',
       'category': 'Math',
       'type': 'Club',
       'ageMin': 11,
@@ -75,6 +81,8 @@ class _StudentScreenState extends State<StudentScreen> {
       'distance': 5.0,
       'date': 'Every Wednesday',
       'link': 'https://girlswhocode.com',
+        'description':
+          'Build coding projects with mentors and join collaborative workshops focused on real-world skills.',
       'category': 'Computer Science',
       'type': 'Club',
       'ageMin': 13,
@@ -87,6 +95,8 @@ class _StudentScreenState extends State<StudentScreen> {
       'distance': 48.0,
       'date': 'August 3, 2026',
       'link': 'https://www.mit.edu',
+        'description':
+          'One-day AI workshop introducing machine learning concepts, ethics, and interactive demos.',
       'category': 'Computer Science',
       'type': 'Event',
       'ageMin': 14,
@@ -284,6 +294,129 @@ class _StudentScreenState extends State<StudentScreen> {
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showEventDetails(Map<String, dynamic> event) {
+    final description = (event['description'] as String?)?.trim().isNotEmpty == true
+        ? event['description'] as String
+        : 'No description provided yet.';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE5E7EB),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    event['title'],
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.title,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    event['org'],
+                    style: const TextStyle(
+                      color: AppColors.subtle,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _Chip(label: event['category'], color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      _Chip(label: event['type'], color: const Color(0xFF00BFA5)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Description',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.title,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      color: AppColors.subtle,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 16, color: AppColors.subtle),
+                      const SizedBox(width: 6),
+                      Text(
+                        event['date'],
+                        style: const TextStyle(color: AppColors.subtle),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 16, color: AppColors.subtle),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${event['location']} • ${event['distance'].round()} mi',
+                        style: const TextStyle(color: AppColors.subtle),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.groups_outlined,
+                          size: 16, color: AppColors.subtle),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Ages ${event['ageMin']} - ${event['ageMax']}',
+                        style: const TextStyle(color: AppColors.subtle),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
@@ -497,6 +630,7 @@ class _StudentScreenState extends State<StudentScreen> {
               itemCount: _filteredEvents.length,
               itemBuilder: (context, index) => _EventCard(
                 event: _filteredEvents[index],
+                onViewDetails: () => _showEventDetails(_filteredEvents[index]),
                 onReport: () => _showReportDialog(_filteredEvents[index]),
               ),
             ),
@@ -536,10 +670,12 @@ class _FilterLabel extends StatelessWidget {
 
 class _EventCard extends StatelessWidget {
   final Map<String, dynamic> event;
+  final VoidCallback onViewDetails;
   final VoidCallback onReport;
 
   const _EventCard({
     required this.event,
+    required this.onViewDetails,
     required this.onReport,
   });
 
@@ -582,95 +718,108 @@ class _EventCard extends StatelessWidget {
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              _Chip(label: event['category'], color: AppColors.primary),
-              const SizedBox(width: 8),
-              _Chip(label: event['type'], color: const Color(0xFF00BFA5)),
-              const Spacer(),
-              IconButton(
-                onPressed: onReport,
-                icon: const Icon(
-                  Icons.flag_outlined,
-                  color: Colors.redAccent,
+    return InkWell(
+      onTap: onViewDetails,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _Chip(label: event['category'], color: AppColors.primary),
+                const SizedBox(width: 8),
+                _Chip(label: event['type'], color: const Color(0xFF00BFA5)),
+                const Spacer(),
+                IconButton(
+                  onPressed: onReport,
+                  icon: const Icon(
+                    Icons.flag_outlined,
+                    color: Colors.redAccent,
+                  ),
+                  tooltip: 'Report event',
                 ),
-                tooltip: 'Report event',
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            event['title'],
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: AppColors.title,
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            event['org'],
-            style: const TextStyle(fontSize: 14, color: AppColors.subtle),
-          ),
-          const SizedBox(height: 10),
-          const Divider(height: 1),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 15,
-                color: AppColors.subtle,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${event['location']} • ${event['distance'].round()} mi',
-                style: const TextStyle(fontSize: 13, color: AppColors.subtle),
-              ),
-              const Spacer(),
-              const Icon(
-                Icons.calendar_today_outlined,
-                size: 13,
-                color: AppColors.subtle,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                event['date'],
-                style: const TextStyle(fontSize: 13, color: AppColors.subtle),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: link.isEmpty ? null : openWebsite,
-              icon: const Icon(Icons.open_in_new, size: 16),
-              label: const Text('Visit Organization Website'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: EdgeInsets.zero,
+            const SizedBox(height: 6),
+            Text(
+              event['title'],
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.title,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              event['org'],
+              style: const TextStyle(fontSize: 14, color: AppColors.subtle),
+            ),
+            const SizedBox(height: 10),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(
+                  Icons.location_on_outlined,
+                  size: 15,
+                  color: AppColors.subtle,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${event['location']} • ${event['distance'].round()} mi',
+                  style: const TextStyle(fontSize: 13, color: AppColors.subtle),
+                ),
+                const Spacer(),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 13,
+                  color: AppColors.subtle,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  event['date'],
+                  style: const TextStyle(fontSize: 13, color: AppColors.subtle),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Tap for details',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: link.isEmpty ? null : openWebsite,
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: const Text('Visit Organization Website'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
