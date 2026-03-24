@@ -13,8 +13,8 @@ class GuestScreen extends StatefulWidget {
 }
 
 class _GuestScreenState extends State<GuestScreen> {
-  double _distance = 25;
-  double _age = 14;
+  final double _distance = 25;
+  final double _age = 14;
 
   final Map<String, bool> _types = {
     'Club': true,
@@ -169,23 +169,33 @@ class _GuestScreenState extends State<GuestScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      ...[
-                        'Incorrect information',
-                        'Spam or scam',
-                        'Inappropriate content',
-                        'Duplicate listing',
-                        'Other',
-                      ].map(
-                        (reason) => RadioListTile<String>(
-                          value: reason,
-                          groupValue: selectedReason,
-                          activeColor: AppColors.primary,
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(reason),
-                          onChanged: (value) {
-                            setModalState(() => selectedReason = value);
-                          },
-                        ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Incorrect information',
+                          'Spam or scam',
+                          'Inappropriate content',
+                          'Duplicate listing',
+                          'Other',
+                        ].map(
+                          (reason) => ChoiceChip(
+                            label: Text(reason),
+                            selected: selectedReason == reason,
+                            selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                            labelStyle: TextStyle(
+                              color: selectedReason == reason
+                                  ? AppColors.primary
+                                  : AppColors.title,
+                              fontWeight: selectedReason == reason
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                            ),
+                            onSelected: (_) {
+                              setModalState(() => selectedReason = reason);
+                            },
+                          ),
+                        ).toList(),
                       ),
                       const SizedBox(height: 8),
                       TextField(
