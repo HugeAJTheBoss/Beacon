@@ -321,6 +321,16 @@ class _StudentSignupScreenState extends State<StudentSignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StudentScreen()),
+                  ),
+                  child: const Text(
+                    '[DEV] Skip to Dashboard',
+                    style: TextStyle(color: Colors.red, fontSize: 13),
+                  ),
+                ),
               ],
             ),
           ),
