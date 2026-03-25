@@ -12,6 +12,7 @@ class AppColors {
   static const title = Color(0xFF1A1A2E);
   static const subtle = Color(0xFF6B7280);
 }
+dsaf
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
