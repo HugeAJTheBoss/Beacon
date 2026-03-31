@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'main.dart' show AppColors;
-import 'student_screen.dart';
 import 'org_dashboard_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -17,7 +16,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
   bool _passwordVisible = false;
   bool _isLoading = false;
-  String _role = 'student';
 
   @override
   void dispose() {
@@ -40,9 +38,7 @@ class _SignInScreenState extends State<SignInScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => _role == 'student'
-            ? const StudentScreen()
-            : const OrgDashboardScreen(),
+        builder: (_) => const OrgDashboardScreen(),
       ),
     );
   }
@@ -74,7 +70,7 @@ class _SignInScreenState extends State<SignInScreen> {
               children: [
 
                 const Text(
-                  'Welcome back.',
+                  'Sign in to manage your organization.',
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.subtle,
@@ -117,69 +113,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 const SizedBox(height: 20),
 
-                // role selector
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _role = 'student'),
-                          child: Container(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _role == 'student'
-                                  ? AppColors.primary
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Student',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: _role == 'student'
-                                    ? Colors.white
-                                    : AppColors.subtle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _role = 'org'),
-                          child: Container(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _role == 'org'
-                                  ? AppColors.primary
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              'Organization',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: _role == 'org'
-                                    ? Colors.white
-                                    : AppColors.subtle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
-                const SizedBox(height: 20),
 
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
