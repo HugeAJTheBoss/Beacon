@@ -1,4 +1,6 @@
+# =============================================================================
 # Miscellaneous
+# =============================================================================
 *.class
 *.log
 *.pyc
@@ -12,51 +14,97 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# =============================================================================
+# IDE / Editor
+# =============================================================================
 *.iml
 *.ipr
 *.iws
 .idea/
-
-# Visual Studio Code related
 .vscode/
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# =============================================================================
+# Flutter / Dart / Pub
+# =============================================================================
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
+.metadata
 build/
 coverage/
 pubspec.lock
+**/doc/api/
 
-# Android related
-**/android/local.properties
-**/android/key.properties
-**/android/**/google-services.json
-/android/app/debug
-/android/app/profile
-/android/app/release
+# =============================================================================
+# Android
+# =============================================================================
+android/.gradle/
+android/local.properties
+android/key.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/gradle/wrapper/gradle-wrapper.jar
+android/gradlew
+android/gradlew.bat
+android/beacon_android.iml
 
-# iOS/macOS related
+# Auto-generated plugin registrant
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
+# =============================================================================
+# iOS
+# =============================================================================
+**/ios/Pods/
+**/ios/.symlinks/
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/.last_build_id
 **/ios/Flutter/App.framework
 **/ios/Flutter/App.podspec
 **/ios/Flutter/App.xcframework
-**/ios/Pods/
-**/ios/.symlinks/
 **/ios/Flutter/Config/
+
+# Auto-generated plugin registrant
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+
+# =============================================================================
+# macOS
+# =============================================================================
+**/macos/Flutter/ephemeral/
 **/macos/Flutter/Generated.xcconfig
 **/macos/Flutter/flutter_export_environment.sh
-**/macos/Flutter/ephemeral/
 
+# Auto-generated plugin registrant
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# =============================================================================
+# Linux (auto-generated plugin files)
+# =============================================================================
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugins.cmake
+linux/flutter/ephemeral/
+
+# =============================================================================
+# Windows (auto-generated plugin files)
+# =============================================================================
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+windows/flutter/ephemeral/
+
+# =============================================================================
 # Symbolication related
+# =============================================================================
 app.*.symbols
 
+# =============================================================================
 # Obfuscation related
+# =============================================================================
 app.*.map.json
