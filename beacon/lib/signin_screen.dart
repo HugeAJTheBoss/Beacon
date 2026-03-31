@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
-import 'student_screen.dart';
 import 'org_dashboard_screen.dart';
 
 class SignInScreen extends StatefulWidget {
