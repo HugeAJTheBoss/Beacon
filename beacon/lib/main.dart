@@ -7,7 +7,7 @@ import 'signin_screen.dart';
 import 'guest_screen.dart';
 
 class AppColors {
-  static const primary = Color.fromARGB(255, 237, 41, 255);
+  static const primary = Color(0xFF2979FF);
   static const background = Color(0xFFF0F4FF);
   static const title = Color(0xFF1A1A2E);
   static const subtle = Color(0xFF6B7280);
