@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart' show AppColors;
+import 'app_theme.dart';
 import 'signin_screen.dart';
 import 'org_dashboard_screen.dart';
 
@@ -55,11 +55,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.title,
-        elevation: 0,
         title: const Text(
           'Register Organization',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -90,9 +86,9 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                     foregroundColor: AppColors.title,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    side: const BorderSide(color: Color(0xFFE5E7EB)),
+                    side: const BorderSide(color: AppColors.border),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -133,12 +129,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                     obscureText: !_passwordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _passwordVisible
@@ -216,15 +206,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -301,14 +282,6 @@ class _FormField extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle:
-              const TextStyle(color: AppColors.subtle, fontSize: 13),
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
         ),
         validator: validator,
       ),
@@ -322,7 +295,6 @@ class PendingApprovalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -359,15 +331,6 @@ class PendingApprovalScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () =>
                     Navigator.popUntil(context, (r) => r.isFirst),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 0,
-                ),
                 child: const Text(
                   'Back to Home',
                   style:

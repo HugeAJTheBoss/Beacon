@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart' show AppColors;
+import 'app_theme.dart';
 
 class OrgDashboardScreen extends StatefulWidget {
   const OrgDashboardScreen({super.key});

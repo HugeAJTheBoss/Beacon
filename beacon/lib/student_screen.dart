@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'link_opener_stub.dart'
   if (dart.library.html) 'link_opener_web.dart';
-import 'main.dart' show AppColors;
+import 'app_theme.dart';
 
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
