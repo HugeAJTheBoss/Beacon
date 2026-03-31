@@ -401,7 +401,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   String _type = 'Event';
   String _status = 'Upcoming';
   int _ageMin = 10;
-  int _ageMax = 18;
+  int _ageMax = 24;
 
   final List<String> _categories = [
     'Robotics', 'Biology', 'Math',
@@ -429,7 +429,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
       _type = e['type'] ?? 'Event';
       _status = e['status'] ?? 'Upcoming';
       _ageMin = e['ageMin'] ?? 10;
-      _ageMax = e['ageMax'] ?? 18;
+      _ageMax = e['ageMax'] ?? 24;
     }
   }
 
@@ -609,8 +609,8 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                                   Slider(
                                     value: _ageMin.toDouble(),
                                     min: 5,
-                                    max: 18,
-                                    divisions: 13,
+                                    max: 24,
+                                    divisions: 19,
                                     activeColor: AppColors.primary,
                                     onChanged: (val) => setState(
                                         () => _ageMin = val.round()),
@@ -630,8 +630,8 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                                   Slider(
                                     value: _ageMax.toDouble(),
                                     min: 5,
-                                    max: 18,
-                                    divisions: 13,
+                                    max: 24,
+                                    divisions: 19,
                                     activeColor: AppColors.primary,
                                     onChanged: (val) => setState(
                                         () => _ageMax = val.round()),
@@ -651,16 +651,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           validator: (val) =>
                               val!.isEmpty ? 'Cost is required' : null,
                         ),
-
-                        _SheetField(
-                          controller: _capacityController,
-                          label: 'Max Capacity',
-                          hint: 'e.g. 30',
-                          keyboardType: TextInputType.number,
-                          validator: (val) =>
-                              val!.isEmpty ? 'Capacity is required' : null,
-                        ),
-
+                        
                         _SheetField(
                           controller: _linkController,
                           label: 'Organization Website Link',
