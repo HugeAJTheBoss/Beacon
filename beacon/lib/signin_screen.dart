@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'main.dart' show AppColors;
+import 'app_theme.dart';
+import 'student_screen.dart';
 import 'org_dashboard_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -50,11 +51,7 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.title,
-        elevation: 0,
         title: const Text(
           'Sign In',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -88,9 +85,9 @@ class _SignInScreenState extends State<SignInScreen> {
                     foregroundColor: AppColors.title,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    side: const BorderSide(color: Color(0xFFE5E7EB)),
+                    side: const BorderSide(color: AppColors.border),
                   ),
                 ),
 
@@ -120,17 +117,9 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Email',
                       hintText: 'you@example.com',
-                      hintStyle: const TextStyle(
-                          color: AppColors.subtle, fontSize: 13),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
                     ),
                     validator: (val) =>
                         !val!.contains('@') ? 'Enter a valid email' : null,
@@ -144,12 +133,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     obscureText: !_passwordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _passwordVisible
@@ -182,15 +165,6 @@ class _SignInScreenState extends State<SignInScreen> {
 
                 ElevatedButton(
                   onPressed: _isLoading ? null : _signIn,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,

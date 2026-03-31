@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'app_theme.dart';
 import 'firebase_options.dart';
 import 'student_screen.dart';
 import 'org_signup_screen.dart';
 import 'signin_screen.dart';
-
-class AppColors {
-  static const primary = Color(0xFF2979FF);
-  static const background = Color(0xFFF0F4FF);
-  static const title = Color(0xFF1A1A2E);
-  static const subtle = Color(0xFF6B7280);
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,10 +22,7 @@ class BeaconApp extends StatelessWidget {
     return MaterialApp(
       title: 'Beacon',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       home: const WelcomeScreen(),
     );
   }
@@ -43,7 +34,6 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -51,15 +41,10 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 90),
-              const Text(
+              Text(
                 'Beacon',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 52,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.title,
-                  letterSpacing: -1.5,
-                ),
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
               const SizedBox(height: 12),
               const Text(
@@ -117,13 +102,6 @@ class _PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
       child: Text(
         label,
         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -141,12 +119,6 @@ class _OutlineButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        side: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
       child: Text(
         label,
         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
