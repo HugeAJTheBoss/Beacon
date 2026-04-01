@@ -94,7 +94,7 @@ class PreferencesService {
     final prefs = await _instance;
     final all = ['Club', 'Event', 'Volunteering'];
     final saved = prefs.getStringList(_keyTypes);
-    if (saved == null) return {for (var t in all) t: true};
+    if (saved == null) return {for (var t in all) t: false};
     return {for (var t in all) t: saved.contains(t)};
   }
 
@@ -116,7 +116,7 @@ class PreferencesService {
       'Computer Science', 'Engineering', 'Physics',
     ];
     final saved = prefs.getStringList(_keyCategories);
-    if (saved == null) return {for (var c in all) c: true};
+    if (saved == null) return {for (var c in all) c: false};
     return {for (var c in all) c: saved.contains(c)};
   }
 

@@ -20,18 +20,18 @@ class _StudentScreenState extends State<StudentScreen> {
   bool _loading = true;
 
   final Map<String, bool> _types = {
-    'Club': true,
-    'Event': true,
-    'Volunteering': true,
+    'Club': false,
+    'Event': false,
+    'Volunteering': false,
   };
 
   final Map<String, bool> _categories = {
-    'Robotics': true,
-    'Biology': true,
-    'Math': true,
-    'Computer Science': true,
-    'Engineering': true,
-    'Physics': true,
+    'Robotics': false,
+    'Biology': false,
+    'Math': false,
+    'Computer Science': false,
+    'Engineering': false,
+    'Physics': false,
   };
 
   final List<Map<String, dynamic>> _allEvents = [
