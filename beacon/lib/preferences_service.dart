@@ -1,0 +1,163 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Simple wrapper around SharedPreferences for student settings.
+/// Works on web (localStorage), Android (SharedPreferences), iOS (NSUserDefaults).
+class PreferencesService {
+  static const _keyDob = 'student_dob';
+  static const _keyZip = 'student_zip';
+  static const _keyDistance = 'student_distance';
+  static const _keyTypes = 'student_types';
+  static const _keyCategories = 'student_categories';
+  static const _keySetupComplete = 'student_setup_complete';
+
+  static SharedPreferences? _prefs;
+
+  static Future<SharedPreferences> get _instance async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
+  }
+
+  // --- Setup status ---
+
+  static Future<bool> isSetupComplete() async {
+    final prefs = await _instance;
+    return prefs.getBool(_keySetupComplete) ?? false;
+  }
+
+  static Future<void> setSetupComplete(bool value) async {
+    final prefs = await _instance;
+    await prefs.setBool(_keySetupComplete, value);
+  }
+
+  // --- Date of birth ---
+
+  static Future<void> saveDob(DateTime dob) async {
+    final prefs = await _instance;
+    await prefs.setString(_keyDob, dob.toIso8601String());
+  }
+
+  static Future<DateTime?> getDob() async {
+    final prefs = await _instance;
+    final raw = prefs.getString(_keyDob);
+    if (raw == null) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  /// Calculate current age from stored DOB.
+  static double calculateAge(DateTime? dob) {
+    if (dob == null) return 14;
+    final now = DateTime.now();
+    double age = (now.year - dob.year).toDouble();
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
+      age -= 1;
+    }
+    return age.clamp(5, 24);
+  }
+
+  // --- Zip code ---
+
+  static Future<void> saveZip(String zip) async {
+    final prefs = await _instance;
+    await prefs.setString(_keyZip, zip);
+  }
+
+  static Future<String> getZip() async {
+    final prefs = await _instance;
+    return prefs.getString(_keyZip) ?? '';
+  }
+
+  // --- Distance ---
+
+  static Future<void> saveDistance(double distance) async {
+    final prefs = await _instance;
+    await prefs.setDouble(_keyDistance, distance);
+  }
+
+  static Future<double> getDistance() async {
+    final prefs = await _instance;
+    return prefs.getDouble(_keyDistance) ?? 25;
+  }
+
+  // --- Types (Club, Event, Volunteering) ---
+
+  static Future<void> saveEnabledTypes(Map<String, bool> types) async {
+    final prefs = await _instance;
+    final enabled = types.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    await prefs.setStringList(_keyTypes, enabled);
+  }
+
+  static Future<Map<String, bool>> getEnabledTypes() async {
+    final prefs = await _instance;
+    final all = ['Club', 'Event', 'Volunteering'];
+    final saved = prefs.getStringList(_keyTypes);
+    if (saved == null) return {for (var t in all) t: true};
+    return {for (var t in all) t: saved.contains(t)};
+  }
+
+  // --- Categories (subjects) ---
+
+  static Future<void> saveEnabledCategories(Map<String, bool> cats) async {
+    final prefs = await _instance;
+    final enabled = cats.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    await prefs.setStringList(_keyCategories, enabled);
+  }
+
+  static Future<Map<String, bool>> getEnabledCategories() async {
+    final prefs = await _instance;
+    final all = [
+      'Robotics', 'Biology', 'Math',
+      'Computer Science', 'Engineering', 'Physics',
+    ];
+    final saved = prefs.getStringList(_keyCategories);
+    if (saved == null) return {for (var c in all) c: true};
+    return {for (var c in all) c: saved.contains(c)};
+  }
+
+  // Get all at once
+
+  static Future<Map<String, dynamic>> getAll() async {
+    final setupDone = await isSetupComplete();
+    if (!setupDone) return {'setupDone': false};
+
+    final dob = await getDob();
+    return {
+      'setupDone': true,
+      'dob': dob,
+      'age': calculateAge(dob),
+      'distance': await getDistance(),
+      'zip': await getZip(),
+      'types': await getEnabledTypes(),
+      'categories': await getEnabledCategories(),
+    };
+  }
+
+  //Save all at once
+
+  static Future<void> saveAll({
+    required DateTime dob,
+    required String zip,
+    required double distance,
+    required Map<String, bool> types,
+    required Map<String, bool> categories,
+  }) async {
+    final prefs = await _instance;
+    await prefs.setString(_keyDob, dob.toIso8601String());
+    await prefs.setString(_keyZip, zip);
+    await prefs.setDouble(_keyDistance, distance);
+    
+    final enabledTypes = types.entries.where((e) => e.value).map((e) => e.key).toList();
+    await prefs.setStringList(_keyTypes, enabledTypes);
+    
+    final enabledCats = categories.entries.where((e) => e.value).map((e) => e.key).toList();
+    await prefs.setStringList(_keyCategories, enabledCats);
+    
+    await prefs.setBool(_keySetupComplete, true);
+  }
+}

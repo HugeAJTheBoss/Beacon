@@ -8,9 +8,7 @@ import 'signin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const BeaconApp());
 }
 
@@ -61,8 +59,7 @@ class WelcomeScreen extends StatelessWidget {
                 label: 'Browse Events',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const StudentScreen()),
+                  MaterialPageRoute(builder: (_) => const StudentScreen()),
                 ),
               ),
               const SizedBox(height: 12),

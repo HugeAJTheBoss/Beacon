@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'link_opener_stub.dart'
   if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
+import 'preferences_service.dart';
 
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
@@ -14,6 +15,9 @@ class StudentScreen extends StatefulWidget {
 class _StudentScreenState extends State<StudentScreen> {
   double _distance = 25;
   double _age = 14;
+  String _zip = '';
+  DateTime? _dob;
+  bool _loading = true;
 
   final Map<String, bool> _types = {
     'Club': true,
@@ -113,49 +117,357 @@ class _StudentScreenState extends State<StudentScreen> {
     }).toList();
   }
 
-  void _confirmSignOut(BuildContext context) {
-    showDialog(
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = await PreferencesService.getAll();
+      if (prefs['setupDone'] == true) {
+        setState(() {
+          _age = prefs['age'];
+          _distance = prefs['distance'];
+          _zip = prefs['zip'];
+          _dob = prefs['dob'];
+          final savedTypes = prefs['types'] as Map<String, bool>;
+          final savedCats = prefs['categories'] as Map<String, bool>;
+          _types.updateAll((key, _) => savedTypes[key] ?? true);
+          _categories.updateAll((key, _) => savedCats[key] ?? true);
+          _loading = false;
+        });
+      } else {
+        setState(() => _loading = false);
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showWelcomePopup();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading preferences: $e');
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _saveFilters() async {
+    if (_dob != null) {
+      await PreferencesService.saveAll(
+        dob: _dob!,
+        zip: _zip,
+        distance: _distance,
+        types: _types,
+        categories: _categories,
+      );
+    }
+  }
+
+  void _showWelcomePopup() {
+    DateTime? tempDob;
+    final zipController = TextEditingController();
+    final tempTypes = Map<String, bool>.from(_types);
+    final tempCategories = Map<String, bool>.from(_categories);
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Sign Out?',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: AppColors.title,
-          ),
-        ),
-        content: const Text(
-          'You will be returned to the home screen.',
-          style: TextStyle(color: AppColors.subtle, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.subtle),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Firebase Auth sign out goes here
-              Navigator.popUntil(context, (r) => r.isFirst);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.92,
+              minChildSize: 0.92,
+              maxChildSize: 0.95,
+              builder: (_, scrollController) => Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 20),
+                          Text(
+                            'Welcome to Beacon!',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.title,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Tell us a bit about yourself so we can show you the best opportunities.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.subtle,
+                              fontSize: 14,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Divider(),
+                    Expanded(
+                      child: ListView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        children: [
+                          const SizedBox(height: 16),
+
+                          // --- Date of Birth ---
+                          const Text(
+                            'Date of Birth',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppColors.title,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: tempDob ?? DateTime(2010, 1, 1),
+                                firstDate: DateTime(1990),
+                                lastDate: DateTime.now(),
+                                helpText: 'SELECT YOUR DATE OF BIRTH',
+                                initialEntryMode: DatePickerEntryMode.calendarOnly,
+                              );
+                              if (picked != null) {
+                                setModalState(() => tempDob = picked);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: AppColors.background,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.cake_outlined,
+                                      color: AppColors.subtle, size: 20),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    tempDob != null
+                                        ? '${tempDob!.month}/${tempDob!.day}/${tempDob!.year}'
+                                        : 'Tap to select your birthday',
+                                    style: TextStyle(
+                                      color: tempDob != null
+                                          ? AppColors.title
+                                          : AppColors.subtle,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // --- Zip Code ---
+                          const Text(
+                            'Zip Code',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppColors.title,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: zipController,
+                            keyboardType: TextInputType.number,
+                            maxLength: 5,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: const InputDecoration(
+                              hintText: 'e.g. 01609',
+                              prefixIcon: Icon(Icons.location_on_outlined),
+                              counterText: '',
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // --- Interests ---
+                          const Text(
+                            'What are you interested in?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppColors.title,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: tempCategories.keys.map((cat) {
+                              final selected = tempCategories[cat]!;
+                              return FilterChip(
+                                label: Text(cat),
+                                selected: selected,
+                                selectedColor:
+                                    AppColors.primary.withValues(alpha: 0.15),
+                                checkmarkColor: AppColors.primary,
+                                labelStyle: TextStyle(
+                                  color: selected
+                                      ? AppColors.primary
+                                      : AppColors.title,
+                                  fontWeight: selected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                                onSelected: (val) => setModalState(
+                                    () => tempCategories[cat] = val),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // --- Types ---
+                          const Text(
+                            'What type of opportunities?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: AppColors.title,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: tempTypes.keys.map((type) {
+                              final selected = tempTypes[type]!;
+                              return FilterChip(
+                                label: Text(type),
+                                selected: selected,
+                                selectedColor:
+                                    AppColors.primary.withValues(alpha: 0.15),
+                                checkmarkColor: AppColors.primary,
+                                labelStyle: TextStyle(
+                                  color: selected
+                                      ? AppColors.primary
+                                      : AppColors.title,
+                                  fontWeight: selected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                                onSelected: (val) =>
+                                    setModalState(() => tempTypes[type] = val),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+
+                    // --- Get Started button ---
+                    SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (tempDob == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Please select your date of birth.'),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (zipController.text.trim().length < 5) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Please enter a valid 5-digit zip code.'),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (!tempTypes.values.any((v) => v) ||
+                                  !tempCategories.values.any((v) => v)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Select at least one interest and one type.'),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Calculate age from DOB
+                              final now = DateTime.now();
+                              double age = (now.year - tempDob!.year).toDouble();
+                              if (now.month < tempDob!.month ||
+                                  (now.month == tempDob!.month &&
+                                      now.day < tempDob!.day)) {
+                                age -= 1;
+                              }
+
+                              setState(() {
+                                _dob = tempDob;
+                                _zip = zipController.text.trim();
+                                _age = age.clamp(5, 24);
+                                _types.updateAll(
+                                    (key, _) => tempTypes[key] ?? true);
+                                _categories.updateAll(
+                                    (key, _) => tempCategories[key] ?? true);
+                              });
+
+                              _saveFilters();
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'Get Started',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: const Text('Sign Out'),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
+
 
   void _showReportDialog(Map<String, dynamic> event) {
     String? selectedReason;
@@ -431,154 +743,6 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
-  void _openSettingsAndInterests() {
-    final updatedTypes = Map<String, bool>.from(_types);
-    final updatedCategories = Map<String, bool>.from(_categories);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return DraggableScrollableSheet(
-              initialChildSize: 0.72,
-              minChildSize: 0.5,
-              maxChildSize: 0.92,
-              builder: (_, scrollController) => Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE5E7EB),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Row(
-                        children: [
-                          Icon(Icons.tune, color: AppColors.primary),
-                          SizedBox(width: 8),
-                          Text(
-                            'Settings & Interests',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.title,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        'Pick your subjects and the type of opportunities you want to see.',
-                        style: TextStyle(color: AppColors.subtle, height: 1.4),
-                      ),
-                    ),
-                    const Divider(height: 24),
-                    Expanded(
-                      child: ListView(
-                        controller: scrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        children: [
-                          const _SectionTitle(title: 'Type of Opportunity'),
-                          const SizedBox(height: 6),
-                          ...updatedTypes.keys.map(
-                            (type) => CheckboxListTile(
-                              value: updatedTypes[type],
-                              onChanged: (val) =>
-                                  setModalState(() => updatedTypes[type] = val!),
-                              activeColor: AppColors.primary,
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(type),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const _SectionTitle(title: 'Subjects of Interest'),
-                          const SizedBox(height: 6),
-                          ...updatedCategories.keys.map(
-                            (category) => CheckboxListTile(
-                              value: updatedCategories[category],
-                              onChanged: (val) => setModalState(
-                                  () => updatedCategories[category] = val!),
-                              activeColor: AppColors.primary,
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(category),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                      ),
-                    ),
-                    SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              final hasType =
-                                  updatedTypes.values.any((selected) => selected);
-                              final hasCategory = updatedCategories.values
-                                  .any((selected) => selected);
-
-                              if (!hasType || !hasCategory) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Select at least one type and one subject.'),
-                                  ),
-                                );
-                                return;
-                              }
-
-                              setState(() {
-                                _types
-                                    .updateAll((key, value) => updatedTypes[key] ?? false);
-                                _categories.updateAll(
-                                    (key, value) => updatedCategories[key] ?? false);
-                              });
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Save Preferences',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -588,17 +752,15 @@ class _StudentScreenState extends State<StudentScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
+        elevation: 0,
         title: const Text(
           'Beacon',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-            tooltip: 'Profile',
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).maybePop(),
+          tooltip: 'Back',
         ),
         actions: [
           Builder(
@@ -611,78 +773,6 @@ class _StudentScreenState extends State<StudentScreen> {
         ],
       ),
 
-      drawer: Drawer(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                const Icon(
-                  Icons.account_circle,
-                  size: 64,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'My Profile',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.title,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Student',
-                  style: TextStyle(color: AppColors.subtle, fontSize: 14),
-                ),
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 12),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
-                    Icons.settings_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: const Text(
-                    'Settings & Interests',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _openSettingsAndInterests();
-                  },
-                ),
-                const Divider(),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _confirmSignOut(context),
-                    icon: const Icon(Icons.logout, size: 18),
-                    label: const Text('Sign Out'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: const BorderSide(color: Colors.red),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        ),
-      ),
 
       endDrawer: Drawer(
         child: SafeArea(
@@ -725,7 +815,10 @@ class _StudentScreenState extends State<StudentScreen> {
                           max: 100,
                           divisions: 19,
                           activeColor: AppColors.primary,
-                          onChanged: (val) => setState(() => _distance = val),
+                          onChanged: (val) {
+                            setState(() => _distance = val);
+                            _saveFilters();
+                          },
                         ),
                         const SizedBox(height: 8),
                         _FilterLabel(
@@ -776,7 +869,9 @@ class _StudentScreenState extends State<StudentScreen> {
         ),
       ),
 
-      body: _filteredEvents.isEmpty
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _filteredEvents.isEmpty
           ? const Center(
               child: Text(
                 'No opportunities match your filters.',
