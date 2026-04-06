@@ -39,24 +39,21 @@ class WelcomeScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Beacon',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: 'Back',
-        ),
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.tune),
-              onPressed: () => Scaffold.of(context).openEndDrawer(),
-              tooltip: 'Filters',
+        toolbarHeight: 75,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Beacon',
+              style: TextStyle(fontSize: 24.0),
             ),
-          ),
-        ],
+            Text(
+              "     |  Changing lives, one event at a time",
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w100, color: Colors.white70,),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         top: false,
