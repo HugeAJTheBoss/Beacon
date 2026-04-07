@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'signin_screen.dart';
 import 'org_dashboard_screen.dart';
+import 'services/auth_service.dart';
 
 class OrgSignupScreen extends StatefulWidget {
   const OrgSignupScreen({super.key});
@@ -37,8 +38,14 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // TODO: save to Firestore + Firebase Auth here
-    await Future.delayed(const Duration(seconds: 1));
+    final user = await AuthService().registerOrg(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      orgName: _nameController.text.trim(),
+      webURL: _websiteController.text.trim(),
+      regNumber: _einController.text.trim(),
+      orgDescription: _descriptionController.text.trim(),
+    );
 
     setState(() => _isLoading = false);
     if (!mounted) return;

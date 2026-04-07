@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'org_dashboard_screen.dart';
+import 'services/auth_service.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -28,19 +29,49 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    // TODO: replace with real Firebase Auth sign in
-    // After signing in, check Firestore for user.role and route accordingly
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final user = await AuthService().loginOrg(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
-    setState(() => _isLoading = false);
-    if (!mounted) return;
+      setState(() => _isLoading = false);
+      if (!mounted) return;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const OrgDashboardScreen(),
-      ),
-    );
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const OrgDashboardScreen(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to sign in. Please try again.')),
+        );
+      }
+    } on PendingApprovalException {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pending approval')),
+      );
+    } on AccountNotApprovedException {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your account is not approved yet.')),
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in failed. Check email and password.')),
+      );
+    }
   }
 
   void _signInWithGoogle() {
