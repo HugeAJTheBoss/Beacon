@@ -8,7 +8,9 @@ import 'signin_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const BeaconApp());
 }
 
@@ -32,7 +34,29 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 75,
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Beacon',
+              style: TextStyle(fontSize: 24.0),
+            ),
+            Text(
+              "     |  Changing lives, one event at a time",
+              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w100, color: Colors.white70,),
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
+        top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
@@ -59,7 +83,8 @@ class WelcomeScreen extends StatelessWidget {
                 label: 'Browse Events',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const StudentScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const StudentScreen()),
                 ),
               ),
               const SizedBox(height: 12),
