@@ -6,11 +6,11 @@ import 'student_screen.dart';
 import 'org_signup_screen.dart';
 import 'signin_screen.dart';
 
+const double _appBarLogoHeight = 40;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const BeaconApp());
 }
 
@@ -39,20 +39,14 @@ class WelcomeScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        toolbarHeight: 75,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Beacon',
-              style: TextStyle(fontSize: 24.0),
-            ),
-            Text(
-              "     |  Changing lives, one event at a time",
-              style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.w100, color: Colors.white70,),
-            ),
-          ],
+        toolbarHeight: 80,
+        automaticallyImplyLeading: false,
+        titleSpacing: 12,
+        title: Image.asset(
+          'assets/beacon_app_bar.png',
+          height: _appBarLogoHeight,
+          fit: BoxFit.fitHeight,
+          filterQuality: FilterQuality.high,
         ),
       ),
       body: SafeArea(
@@ -83,8 +77,7 @@ class WelcomeScreen extends StatelessWidget {
                 label: 'Browse Events',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const StudentScreen()),
+                  MaterialPageRoute(builder: (_) => const StudentScreen()),
                 ),
               ),
               const SizedBox(height: 12),
