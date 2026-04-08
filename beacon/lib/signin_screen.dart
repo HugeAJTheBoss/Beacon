@@ -18,6 +18,44 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _passwordVisible = false;
   bool _isLoading = false;
 
+  Future<void> _showStatusPopup({
+    required String title,
+    required String message,
+    bool isError = false,
+  }) {
+    return showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            color: AppColors.title,
+          ),
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: AppColors.subtle, height: 1.5),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isError ? Colors.red : AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -46,30 +84,38 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to sign in. Please try again.')),
+        _showStatusPopup(
+          title: 'Sign In Failed',
+          message: 'Check your email or password.',
+          isError: true,
         );
       }
     } on PendingApprovalException {
       setState(() => _isLoading = false);
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pending approval')),
+      _showStatusPopup(
+        title: 'Account Approval Pending',
+        message:
+            'Your organization account is still under review. We will email you once it is approved.',
       );
     } on AccountNotApprovedException {
       setState(() => _isLoading = false);
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your account is not approved yet.')),
+      _showStatusPopup(
+        title: 'Account Approval Pending',
+        message:
+            'Your organization account is still under review. We will email you once it is approved.',
       );
     } catch (e) {
       setState(() => _isLoading = false);
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in failed. Check email and password.')),
+      _showStatusPopup(
+        title: 'Sign In Failed',
+        message: 'Something is wrong with your email or password.',
+        isError: true,
       );
     }
   }
