@@ -242,7 +242,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         children: [
                           const SizedBox(height: 16),
 
-                          // --- Date of Birth ---
                           const Text(
                             'Date of Birth',
                             style: TextStyle(
@@ -296,7 +295,6 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- Zip Code ---
                           const Text(
                             'Zip Code',
                             style: TextStyle(
@@ -321,7 +319,6 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- Interests ---
                           const Text(
                             'What are you interested in?',
                             style: TextStyle(
@@ -357,7 +354,6 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- Types ---
                           const Text(
                             'What type of opportunities?',
                             style: TextStyle(
@@ -396,7 +392,6 @@ class _StudentScreenState extends State<StudentScreen> {
                       ),
                     ),
 
-                    // --- Get Started button ---
                     SafeArea(
                       top: false,
                       child: Padding(
@@ -434,7 +429,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 return;
                               }
 
-                              // Calculate age from DOB
+                              // Derive age from DOB so filters match age-limited events.
                               final now = DateTime.now();
                               double age = (now.year - tempDob!.year).toDouble();
                               if (now.month < tempDob!.month ||
@@ -581,14 +576,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           onPressed: selectedReason == null
                               ? null
                               : () {
-                                  // TODO: send report to backend / Firestore
-                                  // Example payload:
-                                  // {
-                                  //   'eventTitle': event['title'],
-                                  //   'reason': selectedReason,
-                                  //   'details': detailsController.text.trim(),
-                                  //   'reportedAt': DateTime.now().toIso8601String(),
-                                  // }
+                                  // TODO: Save report to backend (Firestore/API).
 
                                   Navigator.pop(context);
 
@@ -960,13 +948,13 @@ class _EventCard extends StatelessWidget {
 
       if (!opened) {
         try {
-          // Android/iOS/desktop path.
+          // On mobile/desktop, fall back to url_launcher.
           opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
           if (!opened) {
             opened = await launchUrl(uri, mode: LaunchMode.platformDefault);
           }
         } on MissingPluginException {
-          // If plugin registration is missing, still allow web fallback.
+          // Plugin may not be available in some builds; retry web path.
           opened = await openInBrowserTab(normalizedLink);
         }
       }

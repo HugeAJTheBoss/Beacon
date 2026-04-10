@@ -24,7 +24,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     super.dispose();
   }
 
-  // Dummy events — replace with Firestore later
+  // Placeholder data until event CRUD is wired to Firestore.
   final List<Map<String, dynamic>> _events = [
     {
       'title': 'Intro to Robotics Workshop',
@@ -133,7 +133,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   void _openAddEventSheet() {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // lets the sheet expand to full height
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
         onSubmit: (event) {
@@ -273,7 +273,6 @@ class _OrgEventCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          // status + category chips
           Row(
             children: [
               _StatusChip(label: event['status'], color: _statusColor),
@@ -286,7 +285,6 @@ class _OrgEventCard extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // title
           Text(
             event['title'],
             style: const TextStyle(
@@ -298,7 +296,6 @@ class _OrgEventCard extends StatelessWidget {
 
           const SizedBox(height: 4),
 
-          // type + date
           Text(
             '${event['type']} • ${event['date']}',
             style: const TextStyle(fontSize: 13, color: AppColors.subtle),
@@ -306,7 +303,6 @@ class _OrgEventCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // website traffic progress bar
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -344,7 +340,6 @@ class _OrgEventCard extends StatelessWidget {
           const Divider(height: 1),
           const SizedBox(height: 8),
 
-          // edit + delete buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -402,7 +397,7 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-// bottom sheet form for adding or editing an event
+// Bottom sheet used for both creating and editing events.
 class _AddEventSheet extends StatefulWidget {
   final Map<String, dynamic>? existingEvent;
   final Function(Map<String, dynamic>) onSubmit;
@@ -441,7 +436,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   @override
   void initState() {
     super.initState();
-    // pre-fill fields if editing an existing event
+    // Pre-fill fields when editing an existing event.
     if (widget.existingEvent != null) {
       final e = widget.existingEvent!;
       _titleController.text = e['title'] ?? '';
@@ -508,7 +503,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
           child: Column(
             children: [
 
-              // drag handle
               const SizedBox(height: 12),
               Container(
                 width: 40,
@@ -570,7 +564,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                               val!.isEmpty ? 'Description is required' : null,
                         ),
 
-                        // category dropdown
                         _DropdownField(
                           label: 'Category',
                           value: _category,
@@ -579,7 +572,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                               setState(() => _category = val!),
                         ),
 
-                        // type dropdown
                         _DropdownField(
                           label: 'Type',
                           value: _type,
@@ -587,7 +579,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           onChanged: (val) => setState(() => _type = val!),
                         ),
 
-                        // status dropdown
                         _DropdownField(
                           label: 'Status',
                           value: _status,
@@ -612,7 +603,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                               val!.isEmpty ? 'Location is required' : null,
                         ),
 
-                        // age range row
                         const SizedBox(height: 8),
                         const Text(
                           'Age Range',
