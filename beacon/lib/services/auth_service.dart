@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart'; // auth
 import 'package:cloud_firestore/cloud_firestore.dart'; //database
+import 'package:flutter/foundation.dart';
 
 class PendingApprovalException implements Exception {
   const PendingApprovalException();
@@ -74,7 +75,7 @@ class AuthService {
       return null;
 
     } catch (e) {
-      print(e);
+      debugPrint('registerOrg error: $e');
       return null;
     }
   }
