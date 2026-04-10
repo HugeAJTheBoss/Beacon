@@ -5,6 +5,9 @@ import 'firebase_options.dart';
 import 'student_screen.dart';
 import 'org_signup_screen.dart';
 import 'signin_screen.dart';
+import 'org_dashboard_screen.dart';
+import 'services/auth_service.dart';
+import 'preferences_service.dart';
 
 const double _appBarLogoHeight = 40;
 
@@ -23,8 +26,73 @@ class BeaconApp extends StatelessWidget {
       title: 'Beacon',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const WelcomeScreen(),
+      home: const _StartupGate(),
     );
+  }
+}
+
+class _StartupGate extends StatelessWidget {
+  const _StartupGate();
+
+  Future<Widget> _resolveInitialScreen() async {
+    final approvedOrgUser = await AuthService().getApprovedCurrentUser();
+    if (approvedOrgUser != null) {
+      return const OrgDashboardScreen();
+    }
+
+    final restoreStudent = await PreferencesService.shouldRestoreStudentOnLaunch();
+    if (restoreStudent) {
+      return const _RestoreStudentEntry();
+    }
+
+    return const WelcomeScreen();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Widget>(
+      future: _resolveInitialScreen(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return snapshot.data ?? const WelcomeScreen();
+      },
+    );
+  }
+}
+
+class _RestoreStudentEntry extends StatefulWidget {
+  const _RestoreStudentEntry();
+
+  @override
+  State<_RestoreStudentEntry> createState() => _RestoreStudentEntryState();
+}
+
+class _RestoreStudentEntryState extends State<_RestoreStudentEntry> {
+  bool _pushed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_pushed) return;
+    _pushed = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const StudentScreen()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const WelcomeScreen();
   }
 }
 
