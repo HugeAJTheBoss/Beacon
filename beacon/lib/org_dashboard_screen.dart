@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
+import 'preferences_service.dart';
+import 'services/auth_service.dart';
 
 class OrgDashboardScreen extends StatefulWidget {
   const OrgDashboardScreen({super.key});
@@ -9,6 +11,18 @@ class OrgDashboardScreen extends StatefulWidget {
 }
 
 class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    PreferencesService.setRestoreOrgOnLaunch(true);
+  }
+
+  @override
+  void dispose() {
+    PreferencesService.setRestoreOrgOnLaunch(false);
+    super.dispose();
+  }
 
   // Dummy events — replace with Firestore later
   final List<Map<String, dynamic>> _events = [
@@ -95,8 +109,10 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              // TODO: Firebase Auth sign out goes here
+            onPressed: () async {
+              await PreferencesService.setRestoreOrgOnLaunch(false);
+              await AuthService().signOut();
+              if (!context.mounted) return;
               Navigator.popUntil(context, (r) => r.isFirst);
             },
             style: ElevatedButton.styleFrom(
@@ -149,15 +165,25 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.logout, size: 20),
-          onPressed: () => _confirmSignOut(context),
-          tooltip: 'Sign Out',
-        ),
         title: const Text(
           'Dashboard',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, size: 20),
+            onPressed: () {
+              PreferencesService.setRestoreOrgOnLaunch(false);
+              Navigator.popUntil(context, (r) => r.isFirst);
+            },
+            tooltip: 'Go Back',
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, size: 20),
+            onPressed: () => _confirmSignOut(context),
+            tooltip: 'Sign Out',
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddEventSheet,

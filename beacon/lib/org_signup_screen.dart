@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'signin_screen.dart';
-import 'org_dashboard_screen.dart';
 import 'services/auth_service.dart';
 
 class OrgSignupScreen extends StatefulWidget {
@@ -38,7 +37,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    final user = await AuthService().registerOrg(
+    await AuthService().registerOrg(
       email: _emailController.text.trim(),
       password: _passwordController.text.trim(),
       orgName: _nameController.text.trim(),

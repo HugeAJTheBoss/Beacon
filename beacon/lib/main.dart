@@ -35,14 +35,17 @@ class _StartupGate extends StatelessWidget {
   const _StartupGate();
 
   Future<Widget> _resolveInitialScreen() async {
-    final approvedOrgUser = await AuthService().getApprovedCurrentUser();
-    if (approvedOrgUser != null) {
-      return const OrgDashboardScreen();
-    }
-
     final restoreStudent = await PreferencesService.shouldRestoreStudentOnLaunch();
     if (restoreStudent) {
       return const _RestoreStudentEntry();
+    }
+
+    final approvedOrgUser = await AuthService().getApprovedCurrentUser();
+    if (approvedOrgUser != null) {
+      final restoreOrg = await PreferencesService.shouldRestoreOrgOnLaunch();
+      if (restoreOrg) {
+        return const _RestoreOrgEntry();
+      }
     }
 
     return const WelcomeScreen();
@@ -86,6 +89,37 @@ class _RestoreStudentEntryState extends State<_RestoreStudentEntry> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const StudentScreen()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const WelcomeScreen();
+  }
+}
+
+class _RestoreOrgEntry extends StatefulWidget {
+  const _RestoreOrgEntry();
+
+  @override
+  State<_RestoreOrgEntry> createState() => _RestoreOrgEntryState();
+}
+
+class _RestoreOrgEntryState extends State<_RestoreOrgEntry> {
+  bool _pushed = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_pushed) return;
+    _pushed = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
       );
     });
   }
