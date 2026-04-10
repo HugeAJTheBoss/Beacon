@@ -120,7 +120,14 @@ class _StudentScreenState extends State<StudentScreen> {
   @override
   void initState() {
     super.initState();
+    PreferencesService.setRestoreStudentOnLaunch(true);
     _loadPreferences();
+  }
+
+  @override
+  void dispose() {
+    PreferencesService.setRestoreStudentOnLaunch(false);
+    super.dispose();
   }
 
   Future<void> _loadPreferences() async {

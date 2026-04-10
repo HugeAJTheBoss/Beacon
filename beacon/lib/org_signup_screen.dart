@@ -239,19 +239,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                     style: TextStyle(color: AppColors.subtle, fontSize: 14),
                   ),
                 ),
-
-                // DEV ONLY — remove before launch
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
-                  ),
-                  child: const Text(
-                    '[DEV] Skip to Dashboard',
-                    style: TextStyle(color: Colors.red, fontSize: 13),
-                  ),
-                ),
-                const SizedBox(height: 32),
               ],
             ),
           ),

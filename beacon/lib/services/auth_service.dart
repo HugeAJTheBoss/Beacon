@@ -13,6 +13,30 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance; // creates singleton
   final FirebaseFirestore _db = FirebaseFirestore.instance; // read and write to database
 
+  /// Returns the currently signed-in org user only if account status is approved.
+  /// If user exists but the org document is missing/pending/not-approved, signs out.
+  Future<User?> getApprovedCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+
+    final doc = await _db.collection('organizations').doc(user.uid).get();
+    if (!doc.exists) {
+      await _auth.signOut();
+      return null;
+    }
+
+    final data = doc.data();
+    final status = (data?['status'] as String? ?? '').toLowerCase();
+    if (status != 'approved') {
+      await _auth.signOut();
+      return null;
+    }
+
+    return user;
+  }
+
   Future<User?> registerOrg({ //async function that returns a user (or null if failed)
     required String email,
     required String password,

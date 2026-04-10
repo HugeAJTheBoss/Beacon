@@ -9,6 +9,7 @@ class PreferencesService {
   static const _keyTypes = 'student_types';
   static const _keyCategories = 'student_categories';
   static const _keySetupComplete = 'student_setup_complete';
+  static const _keyRestoreStudentOnLaunch = 'restore_student_on_launch';
 
   static SharedPreferences? _prefs;
 
@@ -27,6 +28,16 @@ class PreferencesService {
   static Future<void> setSetupComplete(bool value) async {
     final prefs = await _instance;
     await prefs.setBool(_keySetupComplete, value);
+  }
+
+  static Future<void> setRestoreStudentOnLaunch(bool value) async {
+    final prefs = await _instance;
+    await prefs.setBool(_keyRestoreStudentOnLaunch, value);
+  }
+
+  static Future<bool> shouldRestoreStudentOnLaunch() async {
+    final prefs = await _instance;
+    return prefs.getBool(_keyRestoreStudentOnLaunch) ?? false;
   }
 
   // --- Date of birth ---
