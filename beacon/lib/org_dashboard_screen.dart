@@ -252,8 +252,6 @@ class _OrgEventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final websiteVisits = (event['websiteVisits'] ?? event['signups'] ?? 0) as int;
-    final capacity = event['capacity'] as int;
-    final fillPercent = capacity > 0 ? websiteVisits / capacity : 0.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -307,33 +305,13 @@ class _OrgEventCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '$websiteVisits / $capacity website visits',
+                '$websiteVisits website visits',
                 style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.subtle,
                     fontWeight: FontWeight.w500),
               ),
-              Text(
-                '${(fillPercent * 100).round()}%',
-                style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600),
-              ),
             ],
-          ),
-
-          const SizedBox(height: 6),
-
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: fillPercent,
-              minHeight: 6,
-              backgroundColor: const Color(0xFFE5E7EB),
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
           ),
 
           const SizedBox(height: 12),
