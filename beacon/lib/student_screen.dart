@@ -14,7 +14,6 @@ class StudentScreen extends StatefulWidget {
 }
 
 class _StudentScreenState extends State<StudentScreen> {
-  double _distance = 25;
   double _age = 14;
   String _zip = '';
   DateTime? _dob;
@@ -55,7 +54,6 @@ class _StudentScreenState extends State<StudentScreen> {
       if (prefs['setupDone'] == true) {
         setState(() {
           _age = prefs['age'];
-          _distance = prefs['distance'];
           _zip = prefs['zip'];
           _dob = prefs['dob'];
           final savedTypes = prefs['types'] as Map<String, bool>;
@@ -83,7 +81,7 @@ class _StudentScreenState extends State<StudentScreen> {
       await PreferencesService.saveAll(
         dob: _dob!,
         zip: _zip,
-        distance: _distance,
+        distance: 25,
         types: _types,
         categories: _categories,
       );
@@ -631,7 +629,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           size: 16, color: AppColors.subtle),
                       const SizedBox(width: 6),
                       Text(
-                        '${event['location']} • ${event['distance'].round()} mi',
+                        event['location'],
                         style: const TextStyle(color: AppColors.subtle),
                       ),
                     ],
@@ -720,22 +718,6 @@ class _StudentScreenState extends State<StudentScreen> {
                       children: [
                         const SizedBox(height: 16),
                         _FilterLabel(
-                          title: 'Distance',
-                          value: '${_distance.round()} mi',
-                        ),
-                        Slider(
-                          value: _distance,
-                          min: 5,
-                          max: 100,
-                          divisions: 19,
-                          activeColor: AppColors.primary,
-                          onChanged: (val) {
-                            setState(() => _distance = val);
-                            _saveFilters();
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        _FilterLabel(
                           title: 'Your Age',
                           value: '${_age.round()}',
                         ),
@@ -795,7 +777,6 @@ class _StudentScreenState extends State<StudentScreen> {
             List<Map<String, dynamic>> events = snapshot.data!;
 
             final filtered = events.where((event) {
-              if (event['distance'] > _distance) return false;
               if (_age < event['ageMin'] || _age > event['ageMax']) return false;
               if (_types[event['type']] == false) return false;
               if (_categories[event['category']] == false) return false;
@@ -968,7 +949,7 @@ class _EventCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${event['location']} • ${event['distance'].round()} mi',
+                  event['location'],
                   style: const TextStyle(fontSize: 13, color: AppColors.subtle),
                 ),
                 const Spacer(),
