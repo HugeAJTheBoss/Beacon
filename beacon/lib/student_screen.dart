@@ -5,6 +5,7 @@ import 'link_opener_stub.dart'
   if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
 import 'preferences_service.dart';
+import 'services/database_service.dart';
 
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
@@ -34,88 +35,6 @@ class _StudentScreenState extends State<StudentScreen> {
     'Physics': false,
   };
 
-  final List<Map<String, dynamic>> _allEvents = [
-    {
-      'title': 'WPI Robotics Summer Camp',
-      'org': 'WPI',
-      'location': 'Worcester',
-      'distance': 2.0,
-      'date': 'June 14, 2026',
-      'link': 'https://www.wpi.edu',
-      'description':
-          'Hands-on robotics sessions for middle and high school students with team projects and mentor support.',
-      'category': 'Robotics',
-      'type': 'Event',
-      'ageMin': 12,
-      'ageMax': 18,
-    },
-    {
-      'title': 'MassBio Community Lab Volunteers',
-      'org': 'MassBio',
-      'location': 'Boston',
-      'distance': 45.0,
-      'date': 'July 1, 2026',
-      'link': 'https://www.massbio.org',
-        'description':
-          'Volunteer in community STEM labs, help younger students, and assist with weekend science activities.',
-      'category': 'Biology',
-      'type': 'Volunteering',
-      'ageMin': 15,
-      'ageMax': 18,
-    },
-    {
-      'title': 'Math Olympiad Club',
-      'org': 'Worcester Academy',
-      'location': 'Worcester',
-      'distance': 3.0,
-      'date': 'Every Tuesday',
-      'link': 'https://www.worcesteracademy.org',
-        'description':
-          'Weekly math challenge practice with peer-led sessions and competition prep.',
-      'category': 'Math',
-      'type': 'Club',
-      'ageMin': 11,
-      'ageMax': 18,
-    },
-    {
-      'title': 'Girls Who Code Chapter',
-      'org': 'Girls Who Code',
-      'location': 'Worcester',
-      'distance': 5.0,
-      'date': 'Every Wednesday',
-      'link': 'https://girlswhocode.com',
-        'description':
-          'Build coding projects with mentors and join collaborative workshops focused on real-world skills.',
-      'category': 'Computer Science',
-      'type': 'Club',
-      'ageMin': 13,
-      'ageMax': 18,
-    },
-    {
-      'title': 'MIT AI Workshop',
-      'org': 'MIT',
-      'location': 'Cambridge',
-      'distance': 48.0,
-      'date': 'August 3, 2026',
-      'link': 'https://www.mit.edu',
-        'description':
-          'One-day AI workshop introducing machine learning concepts, ethics, and interactive demos.',
-      'category': 'Computer Science',
-      'type': 'Event',
-      'ageMin': 14,
-      'ageMax': 18,
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredEvents {
-    return _allEvents.where((event) {
-      if (event['distance'] > _distance) return false;
-      if (_age < event['ageMin'] || _age > event['ageMax']) return false;
-      if (_types[event['type']] == false) return false;
-      if (_categories[event['category']] == false) return false;
-      return true;
-    }).toList();
-  }
 
   @override
   void initState() {
@@ -865,23 +784,44 @@ class _StudentScreenState extends State<StudentScreen> {
       ),
 
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _filteredEvents.isEmpty
-          ? const Center(
-              child: Text(
-                'No opportunities match your filters.',
-                style: TextStyle(color: AppColors.subtle, fontSize: 16),
-              ),
-            )
-          : ListView.builder(
+      ? const Center(child: CircularProgressIndicator())
+      : StreamBuilder<List<Map<String, dynamic>>>(
+          stream: DatabaseService().getOpportunities(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            List<Map<String, dynamic>> events = snapshot.data!;
+
+            final filtered = events.where((event) {
+              if (event['distance'] > _distance) return false;
+              if (_age < event['ageMin'] || _age > event['ageMax']) return false;
+              if (_types[event['type']] == false) return false;
+              if (_categories[event['category']] == false) return false;
+              return true;
+            }).toList();
+
+            if (filtered.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No opportunities match your filters.',
+                  style: TextStyle(color: AppColors.subtle, fontSize: 16),
+                ),
+              );
+            }
+
+            return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _filteredEvents.length,
+              itemCount: filtered.length,
               itemBuilder: (context, index) => _EventCard(
-                event: _filteredEvents[index],
-                onViewDetails: () => _showEventDetails(_filteredEvents[index]),
-                onReport: () => _showReportDialog(_filteredEvents[index]),
+                event: filtered[index],
+                onViewDetails: () => _showEventDetails(filtered[index]),
+                onReport: () => _showReportDialog(filtered[index]),
               ),
-            ),
+            );
+          },
+        ),
     );
   }
 }
