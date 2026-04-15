@@ -16,6 +16,22 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
+  Future<String?> getCurrentOrgName() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return null;
+    }
+
+    final doc = await _db.collection('organizations').doc(user.uid).get();
+    final rawOrgName = doc.data()?['orgName'];
+    if (rawOrgName is! String) {
+      return null;
+    }
+
+    final orgName = rawOrgName.trim();
+    return orgName.isEmpty ? null : orgName;
+  }
+
   /// Returns the currently signed-in org user only if account status is approved.
   /// If user exists but the org document is missing/pending/not-approved, signs out.
   Future<User?> getApprovedCurrentUser() async {
