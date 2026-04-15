@@ -48,6 +48,8 @@ class DatabaseService {
           'type': data['type'],
           'ageMin': data['ageMin'],
           'ageMax': data['ageMax'],
+          'status': 'Upcoming',
+          'websiteVisits': 0,
         };
       }).toList();
     });

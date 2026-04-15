@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'preferences_service.dart';
 import 'services/auth_service.dart';
+import 'services/database_service.dart';
 
 class OrgDashboardScreen extends StatefulWidget {
   const OrgDashboardScreen({super.key});
@@ -171,14 +172,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, size: 20),
-            onPressed: () {
-              PreferencesService.setRestoreOrgOnLaunch(false);
-              Navigator.popUntil(context, (r) => r.isFirst);
-            },
-            tooltip: 'Go Back',
-          ),
-          IconButton(
             icon: const Icon(Icons.logout, size: 20),
             onPressed: () => _confirmSignOut(context),
             tooltip: 'Sign Out',
@@ -195,31 +188,39 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _events.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No events yet. Tap + Add Event to get started.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.subtle, fontSize: 16),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    itemCount: _events.length,
-                    itemBuilder: (context, index) {
-                      final event = _events[index];
-                      return _OrgEventCard(
-                        event: event,
-                        onEdit: () => _openEditEventSheet(index),
-                        onDelete: () => _deleteEvent(index),
-                      );
-                    },
-                  ),
-          ),
-        ],
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: DatabaseService().getOpportunities(),
+        builder: (context, snapshot) {
+
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final events = snapshot.data!;
+
+          if (events.isEmpty) {
+            return const Center(
+              child: Text(
+                'No events yet. Tap + Add Event to get started.',
+                style: TextStyle(color: AppColors.subtle),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+              final event = events[index];
+
+              return _OrgEventCard(
+                event: event,
+                onEdit: () {},
+                onDelete: () {},
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -444,23 +445,22 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     super.dispose();
   }
 
-  void _submit() {
+  void _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    widget.onSubmit({
-      'title': _titleController.text,
-      'description': _descriptionController.text,
-      'category': _category,
-      'type': _type,
-      'date': _dateController.text,
-      'location': _locationController.text,
-      'ageMin': _ageMin,
-      'ageMax': _ageMax,
-      'cost': _costController.text,
-      'capacity': int.tryParse(_capacityController.text) ?? 0,
-      'link': _linkController.text,
-      'status': _status,
-      'websiteVisits': widget.existingEvent?['websiteVisits'] ?? widget.existingEvent?['signups'] ?? 0,
-    });
+
+    await DatabaseService().createOpportunity(
+      title: _titleController.text,
+      orgName: 'TEMP ORG',
+      location: _locationController.text,
+      date: _dateController.text,
+      link: _linkController.text,
+      description: _descriptionController.text,
+      category: _category,
+      type: _type,
+      ageMin: _ageMin,
+      ageMax: _ageMax,
+    );
+
     Navigator.pop(context);
   }
 
