@@ -14,6 +14,7 @@ class DatabaseService {
     required String type,
     required int ageMin,
     required int ageMax,
+    required String orgId,
     }) async {
     await _db.collection('opportunities').add({
         'title': title,
@@ -26,21 +27,34 @@ class DatabaseService {
         'type': type,
         'ageMin': ageMin,
         'ageMax': ageMax,
+        'orgId': orgId,
         'createdAt': FieldValue.serverTimestamp(),
     });
     }
 
+  Future<void> deleteOpportunity(String id) async {
+    await _db.collection('opportunities').doc(id).delete();
+  }
+
+  Future<void> updateOpportunity(String id, Map<String, dynamic> data) async {
+    await _db.collection('opportunities').doc(id).update(data);
+  }
+
   // real-time stream of opportunities
-  Stream<List<Map<String, dynamic>>> getOpportunities() {
-    return _db.collection('opportunities').snapshots().map((snapshot) {
+  Stream<List<Map<String, dynamic>>> getOrgOpportunities(String orgId) {
+    return _db
+        .collection('opportunities')
+        .where('orgId', isEqualTo: orgId)
+        .snapshots()
+        .map((snapshot) {
       return snapshot.docs.map((doc) {
         final data = doc.data();
 
         return {
+          'id': doc.id,
           'title': data['title'],
           'org': data['orgName'],
           'location': data['location'],
-          'distance': data['distance'] ?? 0,
           'date': data['date'],
           'link': data['link'],
           'description': data['description'],

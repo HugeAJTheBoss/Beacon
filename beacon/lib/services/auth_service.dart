@@ -14,6 +14,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance; // creates singleton
   final FirebaseFirestore _db = FirebaseFirestore.instance; // read and write to database
 
+  User? get currentUser => _auth.currentUser;
+
   /// Returns the currently signed-in org user only if account status is approved.
   /// If user exists but the org document is missing/pending/not-approved, signs out.
   Future<User?> getApprovedCurrentUser() async {

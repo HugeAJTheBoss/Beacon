@@ -25,62 +25,22 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     super.dispose();
   }
 
-  // Placeholder data until event CRUD is wired to Firestore.
-  final List<Map<String, dynamic>> _events = [
-    {
-      'title': 'Intro to Robotics Workshop',
-      'category': 'Robotics',
-      'type': 'Event',
-      'date': 'June 14, 2026',
-      'status': 'Upcoming',
-      'websiteVisits': 12,
-      'capacity': 30,
-    },
-    {
-      'title': 'Summer Coding Club',
-      'category': 'Computer Science',
-      'type': 'Club',
-      'date': 'Every Monday',
-      'status': 'Upcoming',
-      'websiteVisits': 8,
-      'capacity': 20,
-    },
-  ];
-
-  void _deleteEvent(int index) {
+  void _deleteEvent(String id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Event?',
-          style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.title),
-        ),
-        content: Text(
-          'Are you sure you want to delete "${_events[index]['title']}"? This cannot be undone.',
-          style: const TextStyle(color: AppColors.subtle, height: 1.5),
-        ),
+        title: const Text('Delete Event?'),
+        content: const Text('This cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.subtle),
-            ),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              await DatabaseService().deleteOpportunity(id);
               Navigator.pop(context);
-              setState(() => _events.removeAt(index));
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
             child: const Text('Delete'),
           ),
         ],
@@ -137,22 +97,40 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
-        onSubmit: (event) {
-          setState(() => _events.add(event));
+        onSubmit: (event) async {
+          final user = AuthService().currentUser;
+          if (user == null) return;
+
+          await DatabaseService().createOpportunity(
+            title: event['title'] as String,
+            orgName: 'Your Org Name',
+            location: event['location'] as String,
+            date: event['date'] as String,
+            link: event['link'] as String,
+            description: event['description'] as String,
+            category: event['category'] as String,
+            type: event['type'] as String,
+            ageMin: event['ageMin'] as int,
+            ageMax: event['ageMax'] as int,
+            orgId: user.uid,
+          );
         },
       ),
     );
   }
 
-  void _openEditEventSheet(int index) {
+  void _openEditEventSheet(Map<String, dynamic> event) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
-        existingEvent: _events[index],
-        onSubmit: (event) {
-          setState(() => _events[index] = event);
+        existingEvent: event,
+        onSubmit: (updatedEvent) async {
+          await DatabaseService().updateOpportunity(
+            event['id'] as String,
+            updatedEvent,
+          );
         },
       ),
     );
@@ -160,6 +138,14 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final orgId = AuthService().currentUser?.uid;
+
+    if (orgId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -189,9 +175,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         ),
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
-        stream: DatabaseService().getOpportunities(),
+        stream: DatabaseService().getOrgOpportunities(orgId),
         builder: (context, snapshot) {
-
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -202,7 +187,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
             return const Center(
               child: Text(
                 'No events yet. Tap + Add Event to get started.',
-                style: TextStyle(color: AppColors.subtle),
+                style: TextStyle(color: AppColors.subtle, fontSize: 16),
               ),
             );
           }
@@ -215,8 +200,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
 
               return _OrgEventCard(
                 event: event,
-                onEdit: () {},
-                onDelete: () {},
+                onEdit: () => _openEditEventSheet(event),
+                onDelete: () => _deleteEvent(event['id']),
               );
             },
           );
@@ -379,7 +364,7 @@ class _StatusChip extends StatelessWidget {
 // Bottom sheet used for both creating and editing events.
 class _AddEventSheet extends StatefulWidget {
   final Map<String, dynamic>? existingEvent;
-  final Function(Map<String, dynamic>) onSubmit;
+  final Future<void> Function(Map<String, dynamic>) onSubmit;
 
   const _AddEventSheet({this.existingEvent, required this.onSubmit});
 
@@ -448,19 +433,22 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await DatabaseService().createOpportunity(
-      title: _titleController.text,
-      orgName: 'TEMP ORG',
-      location: _locationController.text,
-      date: _dateController.text,
-      link: _linkController.text,
-      description: _descriptionController.text,
-      category: _category,
-      type: _type,
-      ageMin: _ageMin,
-      ageMax: _ageMax,
-    );
+    await widget.onSubmit({
+      'title': _titleController.text,
+      'description': _descriptionController.text,
+      'location': _locationController.text,
+      'date': _dateController.text,
+      'link': _linkController.text,
+      'category': _category,
+      'type': _type,
+      'status': _status,
+      'ageMin': _ageMin,
+      'ageMax': _ageMax,
+      'cost': _costController.text,
+      'capacity': int.tryParse(_capacityController.text) ?? 0,
+    });
 
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
