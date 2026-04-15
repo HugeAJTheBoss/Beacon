@@ -3,6 +3,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DatabaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  Map<String, dynamic> _mapOpportunityDoc(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+
+    return {
+      'id': doc.id,
+      'title': data['title'] ?? '',
+      'org': data['orgName'] ?? '',
+      'location': data['location'] ?? '',
+      'date': data['date'] ?? '',
+      'link': data['link'] ?? '',
+      'description': data['description'] ?? '',
+      'category': data['category'] ?? 'Other',
+      'type': data['type'] ?? 'Event',
+      'ageMin': data['ageMin'] ?? 0,
+      'ageMax': data['ageMax'] ?? 99,
+      'status': 'Upcoming',
+      'websiteVisits': 0,
+    };
+  }
+
     Future<void> createOpportunity({
     required String title,
     required String orgName,
@@ -40,6 +62,12 @@ class DatabaseService {
     await _db.collection('opportunities').doc(id).update(data);
   }
 
+  Stream<List<Map<String, dynamic>>> getOpportunities() {
+    return _db.collection('opportunities').snapshots().map((snapshot) {
+      return snapshot.docs.map(_mapOpportunityDoc).toList();
+    });
+  }
+
   // real-time stream of opportunities
   Stream<List<Map<String, dynamic>>> getOrgOpportunities(String orgId) {
     return _db
@@ -47,25 +75,7 @@ class DatabaseService {
         .where('orgId', isEqualTo: orgId)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-
-        return {
-          'id': doc.id,
-          'title': data['title'],
-          'org': data['orgName'],
-          'location': data['location'],
-          'date': data['date'],
-          'link': data['link'],
-          'description': data['description'],
-          'category': data['category'],
-          'type': data['type'],
-          'ageMin': data['ageMin'],
-          'ageMax': data['ageMax'],
-          'status': 'Upcoming',
-          'websiteVisits': 0,
-        };
-      }).toList();
+      return snapshot.docs.map(_mapOpportunityDoc).toList();
     });
   }
 }
