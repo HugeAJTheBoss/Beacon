@@ -98,12 +98,24 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
         onSubmit: (event) async {
-          final user = AuthService().currentUser;
+          final authService = AuthService();
+          final user = authService.currentUser;
           if (user == null) return;
+
+          final orgName = await authService.getCurrentOrgName();
+          if (orgName == null) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Could not load organization profile name.'),
+              ),
+            );
+            return;
+          }
 
           await DatabaseService().createOpportunity(
             title: event['title'] as String,
-            orgName: 'Your Org Name',
+            orgName: orgName,
             location: event['location'] as String,
             date: event['date'] as String,
             link: event['link'] as String,

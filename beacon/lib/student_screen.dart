@@ -44,6 +44,7 @@ class _StudentScreenState extends State<StudentScreen> {
 
   @override
   void dispose() {
+    _saveFilters();
     PreferencesService.setRestoreStudentOnLaunch(false);
     super.dispose();
   }
@@ -86,6 +87,29 @@ class _StudentScreenState extends State<StudentScreen> {
         categories: _categories,
       );
     }
+  }
+
+  void _updateAgeAndPersist(double age) {
+    final now = DateTime.now();
+    final roundedAge = age.round();
+
+    setState(() {
+      _age = age;
+      // Keep DOB in sync with manual age changes so saved age remains stable.
+      _dob = DateTime(now.year - roundedAge, now.month, now.day);
+    });
+
+    _saveFilters();
+  }
+
+  void _updateTypeAndPersist(String type, bool value) {
+    setState(() => _types[type] = value);
+    _saveFilters();
+  }
+
+  void _updateCategoryAndPersist(String category, bool value) {
+    setState(() => _categories[category] = value);
+    _saveFilters();
   }
 
   void _showWelcomePopup() {
@@ -727,7 +751,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           max: 24,
                           divisions: 19,
                           activeColor: AppColors.primary,
-                          onChanged: (val) => setState(() => _age = val),
+                          onChanged: _updateAgeAndPersist,
                         ),
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Type'),
@@ -738,8 +762,10 @@ class _StudentScreenState extends State<StudentScreen> {
                             value: _types[type],
                             activeColor: AppColors.primary,
                             contentPadding: EdgeInsets.zero,
-                            onChanged: (val) =>
-                                setState(() => _types[type] = val!),
+                            onChanged: (val) {
+                              if (val == null) return;
+                              _updateTypeAndPersist(type, val);
+                            },
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -751,8 +777,10 @@ class _StudentScreenState extends State<StudentScreen> {
                             value: _categories[cat],
                             activeColor: AppColors.primary,
                             contentPadding: EdgeInsets.zero,
-                            onChanged: (val) =>
-                                setState(() => _categories[cat] = val!),
+                            onChanged: (val) {
+                              if (val == null) return;
+                              _updateCategoryAndPersist(cat, val);
+                            },
                           ),
                         ),
                       ],
