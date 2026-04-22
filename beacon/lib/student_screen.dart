@@ -1,3 +1,15 @@
+// Tutorials/sources used for this screen:
+// StatefulWidget lifecycle:       https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
+// Modal bottom sheet patterns:    https://www.geeksforgeeks.org/flutter-modalBottomSheet/
+// DraggableScrollableSheet:       https://www.geeksforgeeks.org/draggablescrollablesheet-in-flutter/
+// StreamBuilder usage:            https://www.geeksforgeeks.org/flutter-streambuilder-widget/
+// ListView.builder usage:         https://www.geeksforgeeks.org/flutter-listview-builder/
+// FilterChip usage:               https://www.geeksforgeeks.org/filter-chip-in-flutter/
+// ChoiceChip usage:               https://www.geeksforgeeks.org/chip-widgets-in-flutter/
+// Date picker pattern:            https://www.geeksforgeeks.org/flutter-set-and-get-date-time-in-datepicker/
+// url_launcher package:           https://pub.dev/packages/url_launcher
+// Flutter mounted check (needed): https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,7 +107,7 @@ class _StudentScreenState extends State<StudentScreen> {
 
     setState(() {
       _age = age;
-      // Keep DOB in sync with manual age changes so saved age remains stable.
+      // Keep DOB aligned with slider changes so future filtering is consistent.
       _dob = DateTime(now.year - roundedAge, now.month, now.day);
     });
 
@@ -370,7 +382,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 return;
                               }
 
-                              // Derive age from DOB so filters match age-limited events.
+                              // Convert DOB to current age used by age-range filtering.
                               final now = DateTime.now();
                               double age = (now.year - tempDob!.year).toDouble();
                               if (now.month < tempDob!.month ||
@@ -517,7 +529,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           onPressed: selectedReason == null
                               ? null
                               : () {
-                                  // TODO: Save report to backend (Firestore/API).
+                                // TODO: Persist report data to backend for moderation workflow.
 
                                   Navigator.pop(context);
 
@@ -897,13 +909,13 @@ class _EventCard extends StatelessWidget {
 
       if (!opened) {
         try {
-          // On mobile/desktop, fall back to url_launcher.
+          // Non-web platforms use url_launcher when dart:html is unavailable.
           opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
           if (!opened) {
             opened = await launchUrl(uri, mode: LaunchMode.platformDefault);
           }
         } on MissingPluginException {
-          // Plugin may not be available in some builds; retry web path.
+          // In constrained builds, retry using the conditional web opener.
           opened = await openInBrowserTab(normalizedLink);
         }
       }

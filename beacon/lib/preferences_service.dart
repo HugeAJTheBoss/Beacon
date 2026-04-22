@@ -1,3 +1,21 @@
+// SharedPreferences (core storage used in this file)
+// https://pub.dev/packages/shared_preferences
+
+// Flutter official guide: Store key-value data locally
+// https://docs.flutter.dev/cookbook/persistence/key-value
+
+// Dart async/await (used for Future, async functions)
+// https://dart.dev/codelabs/async-await
+
+// Dart collections (Map, List, .where(), .map(), etc.)
+// https://dart.dev/guides/language/language-tour#collections
+
+// Dart DateTime (used for DOB storage + age calculation)
+// https://api.dart.dev/stable/dart-core/DateTime-class.html
+
+// Flutter architecture / separation of logic (service pattern idea)
+// https://docs.flutter.dev/development/data-and-backend/state-mgmt/simple
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Simple wrapper around SharedPreferences for student settings.
@@ -19,7 +37,7 @@ class PreferencesService {
     return _prefs!;
   }
 
-  // --- Setup status ---
+  // Setup status
 
   static Future<bool> isSetupComplete() async {
     final prefs = await _instance;
@@ -51,7 +69,7 @@ class PreferencesService {
     return prefs.getBool(_keyRestoreOrgOnLaunch) ?? false;
   }
 
-  // --- Date of birth ---
+  // Date of birth
 
   static Future<void> saveDob(DateTime dob) async {
     final prefs = await _instance;
@@ -77,7 +95,7 @@ class PreferencesService {
     return age.clamp(5, 24);
   }
 
-  // --- Zip code ---
+  // Zip code
 
   static Future<void> saveZip(String zip) async {
     final prefs = await _instance;
@@ -89,7 +107,7 @@ class PreferencesService {
     return prefs.getString(_keyZip) ?? '';
   }
 
-  // --- Distance ---
+  // Distance
 
   static Future<void> saveDistance(double distance) async {
     final prefs = await _instance;
@@ -120,7 +138,7 @@ class PreferencesService {
     return {for (var t in all) t: saved.contains(t)};
   }
 
-  // --- Categories (subjects) ---
+  // Categories (subjects)
 
   static Future<void> saveEnabledCategories(Map<String, bool> cats) async {
     final prefs = await _instance;

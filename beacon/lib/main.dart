@@ -1,3 +1,7 @@
+// Sources also used in auth_service.dart / database_service.dart
+// Firebase core setup:     https://firebase.google.com/docs/flutter/setup
+// FirebaseAuth/Firestore:  https://firebase.flutter.dev/docs/overview
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app_theme.dart';
@@ -12,19 +16,26 @@ import 'preferences_service.dart';
 const double _appBarLogoHeight = 40;
 
 void main() async {
+  // ensures Flutter engine is ready before calling native code
+  // Tutorial: https://www.geeksforgeeks.org/flutter-main-dart-file/
   WidgetsFlutterBinding.ensureInitialized();
+  // Firebase.initializeApp() - initializes Firebase using platform-specific options
+  // Source: https://firebase.google.com/docs/flutter/setup
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const BeaconApp());
 }
-
+// StatelessWidget - used here because BeaconApp itself holds no mutable state
+// Tutorial: https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
 class BeaconApp extends StatelessWidget {
   const BeaconApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // MaterialApp - top-level widget that sets up navigation, theming, and title
+    // Tutorial: https://www.geeksforgeeks.org/flutter-materialapp-widget/
     return MaterialApp(
       title: 'Beacon',
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false, // hides the debug banner in the corner
       theme: AppTheme.lightTheme,
       home: const _StartupGate(),
     );
@@ -33,7 +44,7 @@ class BeaconApp extends StatelessWidget {
 
 class _StartupGate extends StatelessWidget {
   const _StartupGate();
-
+  // Decides which screen to open on launch based on saved preferences and auth state
   Future<Widget> _resolveInitialScreen() async {
     final restoreStudent = await PreferencesService.shouldRestoreStudentOnLaunch();
     if (restoreStudent) {
@@ -53,9 +64,13 @@ class _StartupGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // FutureBuilder - rebuilds the widget when an async Future completes
+    // Tutorial: https://www.geeksforgeeks.org/flutter-futurebuilder-widget/
     return FutureBuilder<Widget>(
       future: _resolveInitialScreen(),
       builder: (context, snapshot) {
+        // ConnectionState.waiting - Future is still running, show a loading spinner
+        // Source: https://api.flutter.dev/flutter/widgets/ConnectionState.html
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -67,7 +82,9 @@ class _StartupGate extends StatelessWidget {
     );
   }
 }
-
+// StatefulWidget used here because we need to trigger a Navigator.push exactly once after the widget is mounted
+// Source: https://api.flutter.dev/flutter/widgets/StatefulWidget-class.html
+// Tutorial: https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
 class _RestoreStudentEntry extends StatefulWidget {
   const _RestoreStudentEntry();
 
@@ -76,18 +93,21 @@ class _RestoreStudentEntry extends StatefulWidget {
 }
 
 class _RestoreStudentEntryState extends State<_RestoreStudentEntry> {
-  bool _pushed = false;
+  bool _pushed = false; // guard flag to prevent pushing the route more than once
 
   @override
   void didChangeDependencies() {
+    // Source: https://api.flutter.dev/flutter/widgets/State/didChangeDependencies.html
     super.didChangeDependencies();
     if (_pushed) return;
     _pushed = true;
-
+    // addPostFrameCallback - runs the callback after the current frame is drawn, ensuring the widget tree is fully built before navigating
+    // Tutorial: https://www.geeksforgeeks.org/flutter-addpostframecallback/
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       Navigator.push(
         context,
+        // Source: https://api.flutter.dev/flutter/material/MaterialPageRoute-class.html
         MaterialPageRoute(builder: (_) => const StudentScreen()),
       );
     });
@@ -119,6 +139,7 @@ class _RestoreOrgEntryState extends State<_RestoreOrgEntry> {
       if (!mounted) return;
       Navigator.push(
         context,
+        // Source: https://api.flutter.dev/flutter/material/MaterialPageRoute-class.html
         MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
       );
     });
@@ -135,6 +156,8 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
+    // Tutorial: https://www.geeksforgeeks.org/flutter-scaffold-widget/
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -142,7 +165,7 @@ class WelcomeScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 80,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false, // hides the default back arrow
         titleSpacing: 12,
         title: Image.asset(
           'assets/beacon_app_bar.png',
@@ -151,8 +174,12 @@ class WelcomeScreen extends StatelessWidget {
           filterQuality: FilterQuality.high,
         ),
       ),
+      // SafeArea - prevents content from being hidden behind notches or system UI
+      // Source: https://api.flutter.dev/flutter/widgets/SafeArea-class.html
       body: SafeArea(
         top: false,
+        // Padding + Column - standard Flutter layout pattern
+        // Tutorial: https://www.geeksforgeeks.org/flutter-column-widget/
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
@@ -162,6 +189,8 @@ class WelcomeScreen extends StatelessWidget {
               Text(
                 'Beacon',
                 textAlign: TextAlign.center,
+              // Theme.of(context) - accesses the app's current theme for consistent styling
+              // Source: https://api.flutter.dev/flutter/material/Theme/of.html
                 style: Theme.of(context).textTheme.headlineLarge,
               ),
               const SizedBox(height: 12),
@@ -174,9 +203,13 @@ class WelcomeScreen extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
+              // Spacer - pushes the buttons to the bottom of the column
+              // Source: https://api.flutter.dev/flutter/widgets/Spacer-class.html
               const Spacer(),
               _PrimaryButton(
                 label: 'Browse Events',
+                // Navigator.push - pushes a new route onto the navigation stack
+                // Tutorial: https://www.geeksforgeeks.org/flutter-navigator/
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const StudentScreen()),
@@ -210,6 +243,8 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
+// ElevatedButton - filled button for primary actions
+// Tutorial: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
 class _PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -226,7 +261,8 @@ class _PrimaryButton extends StatelessWidget {
     );
   }
 }
-
+// OutlinedButton - border-only button used for secondary actions
+// Source: https://api.flutter.dev/flutter/material/OutlinedButton-class.html
 class _OutlineButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;

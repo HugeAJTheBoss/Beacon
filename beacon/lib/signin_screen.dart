@@ -1,3 +1,13 @@
+// Tutorials/sources used for this screen:
+// StatefulWidget basics:          https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
+// Form validation pattern:        https://docs.flutter.dev/cookbook/forms/validation
+// AlertDialog usage:              https://www.geeksforgeeks.org/flutter-alertdialog-widget/
+// Navigator push/pop patterns:    https://www.geeksforgeeks.org/flutter-navigator/
+// TextFormField usage:            https://www.geeksforgeeks.org/flutter-textformfield/
+// Password visibility pattern:    https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
+// Circular progress indicator:    https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
+// mounted check (needed):         https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
+
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'org_dashboard_screen.dart';
