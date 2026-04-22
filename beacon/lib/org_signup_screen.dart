@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
+
 import 'signin_screen.dart';
 import 'services/auth_service.dart';
+import 'widgets/app_form_field.dart';
+
 
 class OrgSignupScreen extends StatefulWidget {
   const OrgSignupScreen({super.key});
@@ -21,6 +24,17 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
 
   bool _passwordVisible = false;
   bool _isLoading = false;
+
+  void _openSignInScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SignInScreen()),
+    );
+  }
+
+
+
+
 
   @override
   void dispose() {
@@ -54,229 +68,270 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     );
   }
 
-  void _signUpWithGoogle() {
-    // TODO: implement Google Sign-In
+  String? _validateOrganizationName(String? value) {
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) return 'Organization name is required';
+    return null;
   }
+
+  String? _validateEmail(String? value) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) return 'Email is required';
+    if (!email.contains('@') || !email.contains('.')) {
+      return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    final password = value?.trim() ?? '';
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    return null;
+  }
+
+  String? _validateWebsiteUrl(String? value) {
+    final website = value?.trim() ?? '';
+    if (website.isEmpty) return 'Website URL is required';
+
+    final normalizedWebsite =
+        website.startsWith('http://') || website.startsWith('https://')
+        ? website
+        : 'https://$website';
+    final uri = Uri.tryParse(normalizedWebsite);
+    if (uri == null || uri.host.isEmpty) {
+      return 'Enter a valid website URL';
+    }
+    return null;
+  }
+
+  String? _validateRegistrationNumber(String? value) {
+    final registrationNumber = value?.trim() ?? '';
+    if (registrationNumber.isEmpty) return 'Registration number is required';
+    return null;
+  }
+
+  String? _validateDescription(String? value) {
+    final description = value?.trim() ?? '';
+    if (description.isEmpty) return 'Please add a description';
+    return null;
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.navBar,
+        foregroundColor: AppColors.ink,
+        elevation: 0,
         title: const Text(
           'Register Organization',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Tell us about your organization.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.subtle,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                OutlinedButton.icon(
-                  onPressed: _signUpWithGoogle,
-                  icon: const Icon(Icons.g_mobiledata, size: 24),
-                  label: const Text('Continue with Google'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.title,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    side: const BorderSide(color: AppColors.border),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: const [
-                    Expanded(child: Divider()),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'or sign up with email',
-                        style:
-                            TextStyle(color: AppColors.subtle, fontSize: 13),
-                      ),
-                    ),
-                    Expanded(child: Divider()),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _FormField(
-                  controller: _nameController,
-                  label: 'Organization Name',
-                  hint: 'e.g. Worcester Robotics Club',
-                  validator: (val) =>
-                      val!.isEmpty ? 'Organization name is required' : null,
-                ),
-                _FormField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hint: 'contact@yourorg.org',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (val) =>
-                      !val!.contains('@') ? 'Enter a valid email' : null,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: TextFormField(
-                    controller: _passwordController,
-                    obscureText: !_passwordVisible,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _passwordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: AppColors.subtle,
-                        ),
-                        onPressed: () => setState(
-                            () => _passwordVisible = !_passwordVisible),
-                      ),
-                    ),
-                    validator: (val) => val!.length < 6
-                        ? 'Password must be at least 6 characters'
-                        : null,
-                  ),
-                ),
-                _FormField(
-                  controller: _websiteController,
-                  label: 'Website URL',
-                  hint: 'https://yourorg.org',
-                  keyboardType: TextInputType.url,
-                  validator: (val) =>
-                      val!.isEmpty ? 'Website URL is required' : null,
-                ),
-                _FormField(
-                  controller: _einController,
-                  label: 'EIN / Registration Number',
-                  hint: 'e.g. 12-3456789',
-                  validator: (val) =>
-                      val!.isEmpty ? 'Registration number is required' : null,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= AppLayout.authWideBreakpoint;
+            final horizontalPadding = isWide
+                ? AppLayout.authHorizontalPaddingWide
+                : AppLayout.authHorizontalPaddingNarrow;
+            final availableWidth =
+                constraints.maxWidth - (horizontalPadding * 2);
+            final contentWidth = availableWidth > AppLayout.authContentMaxWidth
+                ? AppLayout.authContentMaxWidth
+                : availableWidth;
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                AppLayout.authScreenTopPadding,
+                horizontalPadding,
+                AppLayout.authScreenBottomPadding,
+              ),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  width: contentWidth > 0 ? contentWidth : constraints.maxWidth,
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Icon(Icons.info_outline,
-                            size: 16, color: AppColors.primary),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Your email and password will be used to sign in after approval.',
-                            style: TextStyle(
-                                fontSize: 13,
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          decoration: AppSurfaces.authInfoPanel,
+                          child: const Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.apartment_rounded,
                                 color: AppColors.primary,
-                                height: 1.4),
+                                size: 20,
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Create your organization profile for review.',
+                                  style: AppTextStyles.authPanelMessage,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Container(
+                          padding: AppInsets.authCard,
+                          decoration: AppSurfaces.authFormCard,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AppFormField(
+                                controller: _nameController,
+                                label: 'Organization Name',
+                                hint: 'e.g. Worcester Robotics Club',
+                                validator: _validateOrganizationName,
+                              ),
+                              AppFormField(
+                                controller: _emailController,
+                                label: 'Email',
+                                hint: 'contact@yourorg.org',
+                                keyboardType: TextInputType.emailAddress,
+                                validator: _validateEmail,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: TextFormField(
+                                  controller: _passwordController,
+                                  obscureText: !_passwordVisible,
+                                  textInputAction: TextInputAction.next,
+                                  autofillHints: const [
+                                    AutofillHints.newPassword,
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: 'Password',
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _passwordVisible
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: AppColors.subtle,
+                                      ),
+                                      onPressed: () => setState(
+                                        () => _passwordVisible =
+                                            !_passwordVisible,
+                                      ),
+                                    ),
+                                  ),
+                                  validator: _validatePassword,
+                                ),
+                              ),
+                              AppFormField(
+                                controller: _websiteController,
+                                label: 'Website URL',
+                                hint: 'https://yourorg.org',
+                                keyboardType: TextInputType.url,
+                                validator: _validateWebsiteUrl,
+                              ),
+                              AppFormField(
+                                controller: _einController,
+                                label: 'EIN / Registration Number',
+                                hint: 'e.g. 12-3456789',
+                                validator: _validateRegistrationNumber,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: AppOpacity.soft,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadii.control,
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        size: 16,
+                                        color: AppColors.primary,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Use this email and password to sign in after approval.',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.primary,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              AppFormField(
+                                controller: _descriptionController,
+                                label: 'Organization Description',
+                                hint:
+                                    'What does your organization do? Who is it for?',
+                                maxLines: 4,
+                                validator: _validateDescription,
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              const Text(
+                                'Applications are reviewed before listing, typically within 1-3 business days.',
+                                style: AppTextStyles.helperBody,
+                              ),
+                              const SizedBox(height: AppSpacing.xl),
+                              ElevatedButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : _submitForm,
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.onPrimary,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Submit application',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              TextButton(
+                                onPressed: _openSignInScreen,
+                                child: const Text(
+                                  'Already have an account? Sign in',
+                                  style: AppTextStyles.subtleAction,
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppLayout.authScreenBottomGap),
                       ],
                     ),
                   ),
                 ),
-                _FormField(
-                  controller: _descriptionController,
-                  label: 'Organization Description',
-                  hint: 'What does your organization do? Who is it for?',
-                  maxLines: 4,
-                  validator: (val) =>
-                      val!.isEmpty ? 'Please add a description' : null,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Your organization will be reviewed before being listed on Beacon. This typically takes 1–3 business days.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.subtle,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submitForm,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Submit for Review',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SignInScreen()),
-                  ),
-                  child: const Text(
-                    'Already have an account? Sign in',
-                    style: TextStyle(color: AppColors.subtle, fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
-      ),
-    );
-  }
-}
-
-class _FormField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final TextInputType keyboardType;
-  final int maxLines;
-  final String? Function(String?) validator;
-
-  const _FormField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.validator,
-    this.keyboardType = TextInputType.text,
-    this.maxLines = 1,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-        ),
-        validator: validator,
       ),
     );
   }
@@ -288,6 +343,15 @@ class PendingApprovalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColors.navBar,
+        foregroundColor: AppColors.ink,
+        elevation: 0,
+        title: const Text(
+          'Beacon',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -312,7 +376,7 @@ class PendingApprovalScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'We\'re reviewing your organization. You\'ll receive an email within 1–3 business days once you\'ve been approved.',
+                'We\'re reviewing your organization. You\'ll receive an email within 1ΓÇô3 business days once you\'ve been approved.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -322,12 +386,10 @@ class PendingApprovalScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () =>
-                    Navigator.popUntil(context, (r) => r.isFirst),
+                onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
                 child: const Text(
                   'Back to Home',
-                  style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
             ],

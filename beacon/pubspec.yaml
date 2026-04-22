@@ -16,6 +16,9 @@ dependencies:
   firebase_messaging: ^16.1.2
   url_launcher: ^6.3.2
   shared_preferences: ^2.3.4
+  google_fonts: ^6.2.1
+  flutter_map: ^8.2.0
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:
@@ -26,3 +29,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/beacon_app_bar.png
+    - assets/stem_logo_placeholder.jpg
+    - assets/google_logo.png
+    - assets/ms_logo.png
+    - assets/apple_logo.png
