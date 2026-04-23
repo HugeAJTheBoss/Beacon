@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
-
 import 'signin_screen.dart';
 import 'services/auth_service.dart';
-import 'widgets/app_form_field.dart';
-
 
 class OrgSignupScreen extends StatefulWidget {
   const OrgSignupScreen({super.key});
@@ -31,10 +28,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
       MaterialPageRoute(builder: (_) => const SignInScreen()),
     );
   }
-
-
-
-
 
   @override
   void dispose() {
@@ -117,220 +110,241 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     return null;
   }
 
-
+  /// Builds a standard form text field with bottom spacing.
+  Widget _field({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required String? Function(String?) validator,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: maxLines > 1 ? TextInputType.multiline : keyboardType,
+        textInputAction:
+            maxLines > 1 ? TextInputAction.newline : TextInputAction.next,
+        maxLines: maxLines,
+        decoration: InputDecoration(labelText: label, hintText: hint),
+        validator: validator,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.navBar,
-        foregroundColor: AppColors.ink,
-        elevation: 0,
         title: const Text(
           'Register Organization',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= AppLayout.authWideBreakpoint;
-            final horizontalPadding = isWide
-                ? AppLayout.authHorizontalPaddingWide
-                : AppLayout.authHorizontalPaddingNarrow;
-            final availableWidth =
-                constraints.maxWidth - (horizontalPadding * 2);
-            final contentWidth = availableWidth > AppLayout.authContentMaxWidth
-                ? AppLayout.authContentMaxWidth
-                : availableWidth;
-
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                AppLayout.authScreenTopPadding,
-                horizontalPadding,
-                AppLayout.authScreenBottomPadding,
-              ),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: contentWidth > 0 ? contentWidth : constraints.maxWidth,
-                  child: Form(
-                    key: _formKey,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          decoration: AppSurfaces.authInfoPanel,
-                          child: const Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.apartment_rounded,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Create your organization profile for review.',
-                                  style: AppTextStyles.authPanelMessage,
-                                ),
-                              ),
-                            ],
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 540),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Info panel
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      decoration: BoxDecoration(
+                        color: AppColors.heroTint.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(AppRadii.panel),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.apartment_rounded,
+                            color: AppColors.primary,
+                            size: 20,
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        Container(
-                          padding: AppInsets.authCard,
-                          decoration: AppSurfaces.authFormCard,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              AppFormField(
-                                controller: _nameController,
-                                label: 'Organization Name',
-                                hint: 'e.g. Worcester Robotics Club',
-                                validator: _validateOrganizationName,
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Create your organization profile for review.',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: AppColors.subtle,
+                                height: 1.45,
                               ),
-                              AppFormField(
-                                controller: _emailController,
-                                label: 'Email',
-                                hint: 'contact@yourorg.org',
-                                keyboardType: TextInputType.emailAddress,
-                                validator: _validateEmail,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: TextFormField(
-                                  controller: _passwordController,
-                                  obscureText: !_passwordVisible,
-                                  textInputAction: TextInputAction.next,
-                                  autofillHints: const [
-                                    AutofillHints.newPassword,
-                                  ],
-                                  decoration: InputDecoration(
-                                    labelText: 'Password',
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _passwordVisible
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                        color: AppColors.subtle,
-                                      ),
-                                      onPressed: () => setState(
-                                        () => _passwordVisible =
-                                            !_passwordVisible,
-                                      ),
-                                    ),
-                                  ),
-                                  validator: _validatePassword,
-                                ),
-                              ),
-                              AppFormField(
-                                controller: _websiteController,
-                                label: 'Website URL',
-                                hint: 'https://yourorg.org',
-                                keyboardType: TextInputType.url,
-                                validator: _validateWebsiteUrl,
-                              ),
-                              AppFormField(
-                                controller: _einController,
-                                label: 'EIN / Registration Number',
-                                hint: 'e.g. 12-3456789',
-                                validator: _validateRegistrationNumber,
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(
-                                      alpha: AppOpacity.soft,
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadii.control,
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.info_outline,
-                                        size: 16,
-                                        color: AppColors.primary,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          'Use this email and password to sign in after approval.',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: AppColors.primary,
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              AppFormField(
-                                controller: _descriptionController,
-                                label: 'Organization Description',
-                                hint:
-                                    'What does your organization do? Who is it for?',
-                                maxLines: 4,
-                                validator: _validateDescription,
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              const Text(
-                                'Applications are reviewed before listing, typically within 1-3 business days.',
-                                style: AppTextStyles.helperBody,
-                              ),
-                              const SizedBox(height: AppSpacing.xl),
-                              ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : _submitForm,
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: AppColors.onPrimary,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Submit application',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                              TextButton(
-                                onPressed: _openSignInScreen,
-                                child: const Text(
-                                  'Already have an account? Sign in',
-                                  style: AppTextStyles.subtleAction,
-                                ),
-                              ),
-
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: AppLayout.authScreenBottomGap),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // Form card
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(AppRadii.lg),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.ink.withValues(alpha: 0.05),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _field(
+                            controller: _nameController,
+                            label: 'Organization Name',
+                            hint: 'e.g. Worcester Robotics Club',
+                            validator: _validateOrganizationName,
+                          ),
+                          _field(
+                            controller: _emailController,
+                            label: 'Email',
+                            hint: 'contact@yourorg.org',
+                            keyboardType: TextInputType.emailAddress,
+                            validator: _validateEmail,
+                          ),
+
+                          // Password (custom because of visibility toggle)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: TextFormField(
+                              controller: _passwordController,
+                              obscureText: !_passwordVisible,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.newPassword],
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _passwordVisible
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: AppColors.subtle,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _passwordVisible = !_passwordVisible,
+                                  ),
+                                ),
+                              ),
+                              validator: _validatePassword,
+                            ),
+                          ),
+
+                          _field(
+                            controller: _websiteController,
+                            label: 'Website URL',
+                            hint: 'https://yourorg.org',
+                            keyboardType: TextInputType.url,
+                            validator: _validateWebsiteUrl,
+                          ),
+                          _field(
+                            controller: _einController,
+                            label: 'EIN / Registration Number',
+                            hint: 'e.g. 12-3456789',
+                            validator: _validateRegistrationNumber,
+                          ),
+
+                          // Info hint
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.08),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadii.control),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Use this email and password to sign in after approval.',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.primary,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          _field(
+                            controller: _descriptionController,
+                            label: 'Organization Description',
+                            hint:
+                                'What does your organization do? Who is it for?',
+                            maxLines: 4,
+                            validator: _validateDescription,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          const Text(
+                            'Applications are reviewed before listing, typically within 1-3 business days.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.subtle,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
+
+                          // Submit button
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _submitForm,
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.onPrimary,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Submit application'),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          TextButton(
+                            onPressed: _openSignInScreen,
+                            child: const Text(
+                              'Already have an account? Sign in',
+                              style: TextStyle(
+                                color: AppColors.subtle,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
                 ),
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -344,9 +358,6 @@ class PendingApprovalScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.navBar,
-        foregroundColor: AppColors.ink,
-        elevation: 0,
         title: const Text(
           'Beacon',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -376,7 +387,7 @@ class PendingApprovalScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'We\'re reviewing your organization. You\'ll receive an email within 1ΓÇô3 business days once you\'ve been approved.',
+                'We\'re reviewing your organization. You\'ll receive an email within 1-3 business days once you\'ve been approved.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -386,11 +397,9 @@ class PendingApprovalScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
-                child: const Text(
-                  'Back to Home',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
+                onPressed: () =>
+                    Navigator.popUntil(context, (r) => r.isFirst),
+                child: const Text('Back to Home'),
               ),
             ],
           ),

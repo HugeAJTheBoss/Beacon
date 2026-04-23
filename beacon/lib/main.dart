@@ -133,7 +133,7 @@ class _RestoreOrgEntryState extends State<_RestoreOrgEntry> {
   Widget build(BuildContext context) => const WelcomeScreen();
 }
 
-// ─── Welcome Screen (map branch layout, verbatim) ────────────────────────────
+// ─── Welcome Screen ──────────────────────────────────────────────────────────
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -143,38 +143,9 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  static const Duration _dotTransitionDuration = Duration(milliseconds: 220);
-
   final _newsletterEmailController = TextEditingController();
   final _highlightsPageController = PageController(viewportFraction: 0.88);
   int _activeHighlightIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  InputDecoration get _newsletterInputDecoration {
-    return InputDecoration(
-      hintText: 'Enter your email address',
-      prefixIcon: const Icon(Icons.email_outlined),
-      filled: true,
-      fillColor: AppColors.card,
-      contentPadding: AppInsets.newsletterInput,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        borderSide: const BorderSide(color: AppColors.border),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        borderSide: const BorderSide(color: AppColors.border),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-      ),
-    );
-  }
 
   @override
   void dispose() {
@@ -182,8 +153,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     _highlightsPageController.dispose();
     super.dispose();
   }
-
-
 
   void _browseEvents() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentScreen()));
@@ -206,7 +175,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   void _joinNewsletter() {
-    // UI-only newsletter action for now; no backend write happens here.
     final email = _newsletterEmailController.text.trim();
     final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailPattern.hasMatch(email)) {
@@ -226,7 +194,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return TextField(
       controller: _newsletterEmailController,
       keyboardType: TextInputType.emailAddress,
-      decoration: _newsletterInputDecoration,
+      decoration: InputDecoration(
+        hintText: 'Enter your email address',
+        prefixIcon: const Icon(Icons.email_outlined),
+        filled: true,
+        fillColor: AppColors.card,
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.pill),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+      ),
     );
   }
 
@@ -294,9 +280,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.navBar,
-        foregroundColor: AppColors.ink,
-        elevation: 0,
         title: const Text(
           'Beacon | SHAPING FUTURES, ONE EVENT AT A TIME',
           style: TextStyle(fontWeight: FontWeight.w800),
@@ -327,17 +310,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           final isDesktop = constraints.maxWidth >= AppLayout.desktopBreakpoint;
           final isTabletLayout = constraints.maxWidth >= AppLayout.tabletBreakpoint;
           final contentHorizontalPadding = isDesktop
-              ? AppLayout.homeHorizontalPaddingDesktop
-              : (isTabletLayout
-                    ? AppLayout.homeHorizontalPaddingTablet
-                    : AppLayout.homeHorizontalPaddingMobile);
+              ? 48.0
+              : (isTabletLayout ? 28.0 : AppSpacing.lg);
 
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               contentHorizontalPadding,
-              AppLayout.homeScreenVerticalPadding,
+              28,
               contentHorizontalPadding,
-              AppLayout.homeScreenVerticalPadding,
+              28,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -384,7 +365,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   children: List.generate(
                     _featuredHighlights.length,
                     (index) => AnimatedContainer(
-                      duration: _dotTransitionDuration,
+                      duration: const Duration(milliseconds: 220),
                       margin: const EdgeInsets.symmetric(horizontal: 3),
                       width: _activeHighlightIndex == index ? 20 : 8,
                       height: 8,
@@ -465,7 +446,7 @@ class _HeroGraphicCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.xxl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withValues(alpha: AppOpacity.soft),
+            color: AppColors.ink.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -483,8 +464,8 @@ class _HeroGraphicCard extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primary.withValues(alpha: AppOpacity.subtle),
-                    AppColors.ink.withValues(alpha: AppOpacity.strong),
+                    AppColors.primary.withValues(alpha: 0.12),
+                    AppColors.ink.withValues(alpha: 0.4),
                   ],
                 ),
               ),

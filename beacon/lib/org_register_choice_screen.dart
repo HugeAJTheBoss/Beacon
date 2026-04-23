@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'app_theme.dart';
-
 import 'org_signup_screen.dart';
 import 'signin_screen.dart';
-import 'widgets/provider_mark.dart';
 
 class OrgRegisterChoiceScreen extends StatelessWidget {
   const OrgRegisterChoiceScreen({super.key});
@@ -23,12 +20,9 @@ class OrgRegisterChoiceScreen extends StatelessWidget {
     );
   }
 
-
-
   Widget _buildProviderButton({
     required String label,
     required String assetPath,
-    required String semanticLabel,
   }) {
     return SizedBox(
       height: 52,
@@ -42,9 +36,11 @@ class OrgRegisterChoiceScreen extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: ProviderMark(
-                assetPath: assetPath,
-                semanticLabel: semanticLabel,
+              child: Image.asset(
+                assetPath,
+                width: AppLayout.providerMarkSize,
+                height: AppLayout.providerMarkSize,
+                fit: BoxFit.contain,
               ),
             ),
             Text(label),
@@ -58,153 +54,149 @@ class OrgRegisterChoiceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.navBar,
-        foregroundColor: AppColors.ink,
-        elevation: 0,
         title: const Text(
           'Register Organization',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide =
-                constraints.maxWidth >= AppLayout.authWideBreakpoint;
-            final horizontalPadding = isWide
-                ? AppLayout.authHorizontalPaddingWide
-                : AppLayout.authHorizontalPaddingNarrow;
-            final availableWidth =
-                constraints.maxWidth - (horizontalPadding * 2);
-            final contentWidth = availableWidth > AppLayout.authChoiceCardMaxWidth
-                ? AppLayout.authChoiceCardMaxWidth
-                : availableWidth;
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Logo
+                  Align(
+                    alignment: Alignment.center,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppRadii.md),
+                      child: Image.asset(
+                        AppAssets.stemLogoPlaceholder,
+                        width: 180,
+                        height: 110,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    'Create your organization',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  const Text(
+                    'Bring your events to your community',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: AppColors.subtle,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                AppLayout.authScreenTopPadding,
-                horizontalPadding,
-                AppLayout.authScreenBottomPadding,
-              ),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: contentWidth > 0 ? contentWidth : constraints.maxWidth,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Align(
-                        alignment: Alignment.center,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppRadii.md),
-                          child: Image.asset(
-                            AppAssets.stemLogoPlaceholder,
-                            width: AppLayout.authLogoWidth,
-                            height: AppLayout.authLogoHeight,
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.medium,
+                  // Card
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(AppRadii.lg),
+                      border: Border.all(color: AppColors.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.ink.withValues(alpha: 0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: () => _openEmailForm(context),
+                            child: const Text(
+                              'Continue with your email address',
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      Text(
-                        'Create your organization',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      const Text(
-                        'Bring your events to your community',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.authHeroSubtitle,
-                      ),
-                      const SizedBox(height: 28),
-                      Container(
-                        padding: AppInsets.authCard,
-                        decoration: AppSurfaces.authFormCard,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                        const SizedBox(height: AppSpacing.lg),
+                        const Row(
                           children: [
-                            SizedBox(
-                              height: 52,
-                              child: ElevatedButton(
-                                onPressed: () => _openEmailForm(context),
-                                child: const Text(
-                                  'Continue with your email address',
+                            Expanded(child: Divider()),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Text(
+                                'or',
+                                style: TextStyle(
+                                  color: AppColors.subtle,
+                                  fontSize: 13,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Row(
-                              children: const [
-                                Expanded(child: Divider()),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 12),
-                                  child: Text(
-                                    'or',
-                                    style: AppTextStyles.dividerCaption,
-                                  ),
+                            Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _buildProviderButton(
+                          label: 'Continue with Google',
+                          assetPath: AppAssets.googleLogo,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _buildProviderButton(
+                          label: 'Continue with Microsoft',
+                          assetPath: AppAssets.microsoftLogo,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _buildProviderButton(
+                          label: 'Continue with Apple',
+                          assetPath: AppAssets.appleLogo,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Already have a Beacon account? ',
+                              style: TextStyle(
+                                color: AppColors.subtle,
+                                fontSize: 14,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => _openSignIn(context),
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text(
+                                'Log In',
+                                style: TextStyle(
+                                  color: AppColors.title,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  decoration: TextDecoration.underline,
                                 ),
-                                Expanded(child: Divider()),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            _buildProviderButton(
-                              label: 'Continue with Google',
-                              assetPath: AppAssets.googleLogo,
-                              semanticLabel: 'Google',
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            _buildProviderButton(
-                              label: 'Continue with Microsoft',
-                              assetPath: AppAssets.microsoftLogo,
-                              semanticLabel: 'Microsoft',
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            _buildProviderButton(
-                              label: 'Continue with Apple',
-                              assetPath: AppAssets.appleLogo,
-                              semanticLabel: 'Apple',
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'Already have a Beacon account? ',
-                                  style: AppTextStyles.subtleAction,
-                                ),
-                                TextButton(
-                                  onPressed: () => _openSignIn(context),
-                                  style: TextButton.styleFrom(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    'Log In',
-                                    style: AppTextStyles.subtleAction.copyWith(
-                                      color: AppColors.title,
-                                      fontWeight: FontWeight.w700,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
-
-                      const SizedBox(height: AppLayout.authScreenBottomGap),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 18),
+                ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

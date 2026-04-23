@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'link_opener_stub.dart' if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
@@ -11,7 +10,7 @@ import 'services/database_service.dart';
 const double _browseDesktopBreakpoint = 1080;
 const double _browseTabletBreakpoint = 760;
 const String _eventPlaceholderImageAsset = AppAssets.stemLogoPlaceholder;
-const LatLng _defaultBrowseMapCenter = LatLng(42.3355, -71.0813);
+
 
 Color _typeAccentColor(String type) {
   switch (type) {
@@ -26,7 +25,7 @@ Color _typeAccentColor(String type) {
 }
 
 Color _typeTintColor(String type) {
-  return _typeAccentColor(type).withValues(alpha: AppOpacity.subtle);
+  return _typeAccentColor(type).withValues(alpha: 0.12);
 }
 
 String _defaultImageForType(String type) {
@@ -97,9 +96,7 @@ class _StudentScreenState extends State<StudentScreen> {
   DateTime? _dob;
   bool _loading = true;
   final ScrollController _browseScrollController = ScrollController();
-  final Map<String, GlobalKey> _eventCardKeys = {};
-  String? _selectedMapEventId;
-  String? _hoveredMapEventId;
+
 
   final Map<String, bool> _types = {
     'Club': false,
@@ -127,75 +124,9 @@ class _StudentScreenState extends State<StudentScreen> {
   }
 
 
-  String _eventIdFor(Map<String, dynamic> eventData) {
-    final explicitId = (eventData['id'] as String?)?.trim();
-    if (explicitId != null && explicitId.isNotEmpty) {
-      return explicitId;
-    }
-    return '${eventData['org']}_${eventData['title']}_${eventData['date']}';
-  }
 
-  double? _asCoordinate(dynamic value) {
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    return null;
-  }
 
-  List<Map<String, dynamic>> _mappableEventsFrom(List<Map<String, dynamic>> events) {
-    return events.where((eventData) {
-      final lat = _asCoordinate(eventData['lat']);
-      final lng = _asCoordinate(eventData['lng']);
-      return lat != null && lng != null;
-    }).toList();
-  }
 
-  LatLng _mapCenterFor(List<Map<String, dynamic>> events) {
-    if (events.isEmpty) return _defaultBrowseMapCenter;
-
-    double latSum = 0;
-    double lngSum = 0;
-    int validPoints = 0;
-
-    for (final eventData in events) {
-      final lat = _asCoordinate(eventData['lat']);
-      final lng = _asCoordinate(eventData['lng']);
-      if (lat == null || lng == null) continue;
-      latSum += lat;
-      lngSum += lng;
-      validPoints += 1;
-    }
-
-    if (validPoints == 0) return _defaultBrowseMapCenter;
-
-    return LatLng(latSum / validPoints, lngSum / validPoints);
-  }
-
-  LatLngBounds? _boundsForEvents(List<Map<String, dynamic>> events) {
-    final points = <LatLng>[];
-    for (final eventData in events) {
-      final lat = _asCoordinate(eventData['lat']);
-      final lng = _asCoordinate(eventData['lng']);
-      if (lat == null || lng == null) continue;
-      points.add(LatLng(lat, lng));
-    }
-    if (points.isEmpty) return null;
-    return LatLngBounds.fromPoints(points);
-  }
-
-  String _mapSignatureFor(List<Map<String, dynamic>> events) {
-    final signatureParts = <String>[];
-    for (final eventData in events) {
-      final eventId = _eventIdFor(eventData);
-      final lat = _asCoordinate(eventData['lat']);
-      final lng = _asCoordinate(eventData['lng']);
-      if (lat == null || lng == null) continue;
-      signatureParts.add(
-        '$eventId:${lat.toStringAsFixed(5)}:${lng.toStringAsFixed(5)}',
-      );
-    }
-    signatureParts.sort();
-    return signatureParts.join('|');
-  }
 
   String _formatUsDate(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
@@ -203,120 +134,7 @@ class _StudentScreenState extends State<StudentScreen> {
     return '$month/$day/${date.year}';
   }
 
-  Widget _buildMapMarker({
-    required Map<String, dynamic> eventData,
-    required bool isSelected,
-    required bool isHovered,
-    required VoidCallback onTap,
-    required VoidCallback onHoverStart,
-    required VoidCallback onHoverEnd,
-  }) {
-    final eventTitle = (eventData['title'] as String?) ?? 'Untitled event';
-    final eventType = (eventData['type'] as String?) ?? 'Event';
-    final accentColor = _typeAccentColor(eventType);
-    final markerScale = isSelected
-        ? 1.12
-        : isHovered
-        ? 1.05
-        : 1.0;
 
-    return MouseRegion(
-      onEnter: (_) => onHoverStart(),
-      onExit: (_) => onHoverEnd(),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
-            children: [
-              if (isSelected || isHovered)
-                Positioned(
-                  bottom: 44,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    constraints: const BoxConstraints(maxWidth: 156),
-                    decoration: BoxDecoration(
-                      color: AppColors.title,
-                      borderRadius: BorderRadius.circular(AppRadii.pill),
-                    ),
-                    child: Text(
-                      eventTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.onPrimary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              AnimatedScale(
-                scale: markerScale,
-                duration: const Duration(milliseconds: 160),
-                curve: Curves.easeOut,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: accentColor.withValues(alpha: AppOpacity.muted),
-                    border: Border.all(
-                      color: isSelected
-                          ? accentColor
-                          : accentColor.withValues(alpha: AppOpacity.overlay),
-                      width: isSelected ? 2.6 : 1.8,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentColor.withValues(
-                          alpha: isSelected
-                              ? AppOpacity.accent
-                              : AppOpacity.medium,
-                        ),
-                        blurRadius: isSelected ? 16 : 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.location_on,
-                    color: accentColor,
-                    size: isSelected ? 20 : 18,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  GlobalKey _eventCardKeyFor(String eventId) {
-    return _eventCardKeys.putIfAbsent(eventId, () => GlobalKey());
-  }
-
-  void _scrollToEventCard(String eventId) {
-    final targetContext = _eventCardKeys[eventId]?.currentContext;
-    if (targetContext == null) return;
-
-    Scrollable.ensureVisible(
-      targetContext,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeInOut,
-      alignment: 0.12,
-    );
-  }
 
   @override
   void dispose() {
@@ -642,7 +460,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 label: Text(category),
                                 selected: isSelected,
                                 selectedColor: AppColors.primary.withValues(
-                                  alpha: AppOpacity.chip,
+                                  alpha: 0.15,
                                 ),
                                 checkmarkColor: AppColors.primary,
                                 labelStyle: TextStyle(
@@ -681,7 +499,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 label: Text(type),
                                 selected: isSelected,
                                 selectedColor: AppColors.primary.withValues(
-                                  alpha: AppOpacity.chip,
+                                  alpha: 0.15,
                                 ),
                                 checkmarkColor: AppColors.primary,
                                 labelStyle: TextStyle(
@@ -867,7 +685,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                     label: Text(reason),
                                     selected: selectedReportReason == reason,
                                     selectedColor: AppColors.primary.withValues(
-                                      alpha: AppOpacity.chip,
+                                      alpha: 0.15,
                                     ),
                                     labelStyle: TextStyle(
                                       color: selectedReportReason == reason
@@ -1168,120 +986,12 @@ class _StudentScreenState extends State<StudentScreen> {
       ),
     );
 
-    final mapBlockHeight = isDesktop ? 260.0 : 200.0;
-    final mapEvents = _mappableEventsFrom(filteredEvents);
-    final mapCenter = _mapCenterFor(mapEvents);
-    final mapBounds = _boundsForEvents(mapEvents);
-    final mapSignature = _mapSignatureFor(mapEvents);
-    final markerHitWidth = isDesktop ? 150.0 : 124.0;
-    final markerHitHeight = isDesktop ? 104.0 : 88.0;
-
-    final mapPlaceholder = SizedBox(
-      height: mapBlockHeight,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: AppOpacity.emphatic),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.ink.withValues(alpha: AppOpacity.hairline),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadii.panel),
-          child: FlutterMap(
-            key: ValueKey('browse_map:$mapSignature'),
-            options: MapOptions(
-              initialCenter: mapCenter,
-              initialZoom: isDesktop ? 9.2 : 8.8,
-              initialCameraFit: mapBounds == null
-                  ? null
-                  : CameraFit.bounds(
-                      bounds: mapBounds,
-                      padding: EdgeInsets.all(isDesktop ? 42 : 28),
-                      maxZoom: 11.8,
-                    ),
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'beacon',
-              ),
-              MarkerLayer(
-                markers: mapEvents.map((eventData) {
-                  final lat = _asCoordinate(eventData['lat'])!;
-                  final lng = _asCoordinate(eventData['lng'])!;
-                  final eventId = _eventIdFor(eventData);
-                  final isSelected = _selectedMapEventId == eventId;
-                  final isHovered = _hoveredMapEventId == eventId;
-
-                  return Marker(
-                    point: LatLng(lat, lng),
-                    width: markerHitWidth,
-                    height: markerHitHeight,
-                    child: _buildMapMarker(
-                      eventData: eventData,
-                      isSelected: isSelected,
-                      isHovered: isHovered,
-                      onTap: () {
-                        setState(() {
-                          _selectedMapEventId = _selectedMapEventId == eventId
-                              ? null
-                              : eventId;
-                          _hoveredMapEventId = null;
-                        });
-                        if (_selectedMapEventId == eventId) {
-                          _scrollToEventCard(eventId);
-                        }
-                      },
-                      onHoverStart: () {
-                        if (_hoveredMapEventId == eventId) return;
-                        setState(() => _hoveredMapEventId = eventId);
-                      },
-                      onHoverEnd: () {
-                        if (_hoveredMapEventId != eventId) return;
-                        setState(() => _hoveredMapEventId = null);
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (isDesktop) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [heading, const SizedBox(height: 22), description],
-            ),
-          ),
-          const SizedBox(width: 24),
-          Expanded(child: mapPlaceholder),
-        ],
-      );
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         heading,
         const SizedBox(height: 16),
         description,
-        const SizedBox(height: 18),
-        mapPlaceholder,
       ],
     );
   }
@@ -1481,19 +1191,11 @@ class _StudentScreenState extends State<StudentScreen> {
                               itemCount: filteredEvents.length,
                               itemBuilder: (context, index) {
                                 final eventData = filteredEvents[index];
-                                final eventId = _eventIdFor(eventData);
-                                final isMapFocused =
-                                    _selectedMapEventId == eventId ||
-                                    _hoveredMapEventId == eventId;
-                                return KeyedSubtree(
-                                  key: _eventCardKeyFor(eventId),
-                                  child: _EventCard(
-                                    eventData: eventData,
-                                    isMapFocused: isMapFocused,
-                                    onViewDetails: () =>
-                                        _showEventDetails(eventData),
-                                    onReport: () => _showReportDialog(eventData),
-                                  ),
+                                return _EventCard(
+                                  eventData: eventData,
+                                  onViewDetails: () =>
+                                      _showEventDetails(eventData),
+                                  onReport: () => _showReportDialog(eventData),
                                 );
                               },
                             ),
@@ -1540,13 +1242,11 @@ class _FilterLabel extends StatelessWidget {
 
 class _EventCard extends StatelessWidget {
   final Map<String, dynamic> eventData;
-  final bool isMapFocused;
   final VoidCallback onViewDetails;
   final VoidCallback onReport;
 
   const _EventCard({
     required this.eventData,
-    required this.isMapFocused,
     required this.onViewDetails,
     required this.onReport,
   });
@@ -1571,17 +1271,13 @@ class _EventCard extends StatelessWidget {
             color: AppColors.card,
             borderRadius: BorderRadius.circular(AppRadii.lg),
             border: Border.all(
-              color: isMapFocused
-                  ? AppColors.primary.withValues(alpha: AppOpacity.focus)
-                  : AppColors.border.withValues(alpha: AppOpacity.borderMuted),
-              width: isMapFocused ? 1.5 : 1,
+              color: AppColors.border.withValues(alpha: 0.7),
+              width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: isMapFocused
-                    ? AppColors.primary.withValues(alpha: AppOpacity.muted)
-                    : AppColors.ink.withValues(alpha: AppOpacity.hairline),
-                blurRadius: isMapFocused ? 14 : 8,
+                color: AppColors.ink.withValues(alpha: 0.05),
+                blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -1795,11 +1491,11 @@ class _Chip extends StatelessWidget {
       decoration: BoxDecoration(
         color: isTypeLabel
             ? AppColors.card
-            : color.withValues(alpha: AppOpacity.weak),
+            : color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadii.xl),
         border: isTypeLabel
             ? Border.all(
-                color: color.withValues(alpha: AppOpacity.borderStrong),
+                color: color.withValues(alpha: 0.55),
               )
             : null,
       ),

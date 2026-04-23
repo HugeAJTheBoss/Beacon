@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_theme.dart';
 import 'preferences_service.dart';
 import 'services/auth_service.dart';
@@ -15,7 +16,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   static const double _pagePadding = AppSpacing.lg;
   static const double _sectionSpacing = AppSpacing.md;
   static const double _cardRadius = AppRadii.panel;
-  static const double _cardShadowAlpha = AppOpacity.faint;
+  static const double _cardShadowAlpha = 0.04;
   static const double _cardShadowBlur = 6;
   static const Duration _microDuration = Duration(milliseconds: 170);
 
@@ -215,7 +216,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
                 setState(() => _activeStatusFilter = status);
               },
               backgroundColor: AppColors.card,
-              selectedColor: statusColor.withValues(alpha: AppOpacity.medium),
+              selectedColor: statusColor.withValues(alpha: 0.2),
               side: BorderSide(
                 color: isSelected ? statusColor : AppColors.border,
               ),
@@ -419,7 +420,7 @@ class _MetricCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withValues(alpha: AppOpacity.faint),
+            color: AppColors.ink.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -543,7 +544,7 @@ class _OrgEventCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: AppColors.ink.withValues(alpha: AppOpacity.faint),
+            color: AppColors.ink.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -695,7 +696,7 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: AppOpacity.weak),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadii.xl),
       ),
       child: Text(
@@ -775,7 +776,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   }
 
   void _handleOptionalImageTap() {
-    // Intentionally left as a no-op until image upload is wired.
+    // image upload needs to be implemented.
   }
 
   @override
@@ -792,6 +793,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
 
   void _submitEventForm() {
     if (!_formKey.currentState!.validate()) return;
+
     widget.onSubmit({
       'title': _titleController.text.trim(),
       'description': _descriptionController.text.trim(),
@@ -1062,13 +1064,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        const Text(
-                          'No backend attached yet. This remains empty for now.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.subtle,
-                          ),
-                        ),
 
                         const SizedBox(height: 8),
 
@@ -1118,7 +1113,7 @@ class _FormSectionHeader extends StatelessWidget {
           Expanded(
             child: Divider(
               height: 1,
-              color: AppColors.border.withValues(alpha: AppOpacity.pronounced),
+              color: AppColors.border.withValues(alpha: 0.75),
             ),
           ),
         ],
@@ -1189,7 +1184,7 @@ class _DropdownField extends StatelessWidget {
         isDense: false,
         decoration: InputDecoration(
           labelText: label,
-          contentPadding: AppInsets.inputDense,
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
         ),
         items: items
             .map(

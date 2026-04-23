@@ -17,8 +17,7 @@ dependencies:
   url_launcher: ^6.3.2
   shared_preferences: ^2.3.4
   google_fonts: ^6.2.1
-  flutter_map: ^8.2.0
-  latlong2: ^0.9.1
+
 
 dev_dependencies:
   flutter_test:
