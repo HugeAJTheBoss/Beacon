@@ -96,6 +96,7 @@ class _StudentScreenState extends State<StudentScreen> {
   DateTime? _dob;
   bool _loading = true;
   final ScrollController _browseScrollController = ScrollController();
+  Map<String, dynamic>? _selectedEventData;
 
 
   final Map<String, bool> _types = {
@@ -766,196 +767,226 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
-  void _showEventDetails(Map<String, dynamic> eventData) {
+  Widget _buildEventDetailsPanel(bool isDesktop) {
+    if (_selectedEventData == null) {
+      return Container(
+        height: isDesktop ? 260.0 : 200.0,
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(
+            color: AppColors.border.withValues(alpha: 0.7),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.ink.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Text(
+            'Select an event to view details',
+            style: TextStyle(
+              color: AppColors.subtle,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final eventData = _selectedEventData!;
     final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
     final eventDescription =
         (eventData['description'] as String?)?.trim().isNotEmpty == true
         ? eventData['description'] as String
         : 'No description provided yet.';
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.55,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder: (_, scrollController) => Container(
-            decoration: const BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(AppRadii.xl),
-              ),
-            ),
-            child: SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
+    return Container(
+      height: isDesktop ? 260.0 : 320.0,
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.45),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadii.panel),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Center(
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      behavior: HitTestBehavior.opaque,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 6,
-                        ),
-                        child: Container(
-                          width: 42,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: AppColors.border,
-                            borderRadius: BorderRadius.circular(AppRadii.xs),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          eventData['title'],
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.title,
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    eventData['title'],
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    eventData['org'],
-                    style: const TextStyle(
-                      color: AppColors.subtle,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      _Chip(
-                        label: eventData['category'],
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      _Chip(
-                        label: eventData['type'],
-                        color: _typeAccentColor(eventData['type']),
-                        isTypeLabel: true,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    eventDescription,
-                    style: const TextStyle(
-                      color: AppColors.subtle,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: AppColors.subtle,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        eventData['date'],
-                        style: const TextStyle(color: AppColors.subtle),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: AppColors.subtle,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        eventData['distance'] != null
-                            ? '${eventData['location']} • ${(eventData['distance'] as num).round()} mi'
-                            : '${eventData['location']}',
-                        style: const TextStyle(color: AppColors.subtle),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.groups_outlined,
-                        size: 16,
-                        color: AppColors.subtle,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Ages ${eventData['ageMin']} - ${eventData['ageMax']}',
-                        style: const TextStyle(color: AppColors.subtle),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.language_outlined,
-                        size: 16,
-                        color: AppColors.subtle,
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: organizationWebsite.isEmpty
-                                ? null
-                                : () => _openOrganizationWebsiteLink(
-                                    context: context,
-                                    websiteLink: organizationWebsite,
-                                  ),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: const Size(0, 28),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              alignment: Alignment.centerLeft,
-                            ),
-                            icon: const Icon(Icons.open_in_new, size: 14),
-                            label: Text(
-                              organizationWebsite.isEmpty
-                                  ? 'No organization website provided'
-                                  : 'Visit organization website',
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.left,
-                            ),
+                        const SizedBox(height: 6),
+                        Text(
+                          eventData['org'],
+                          style: const TextStyle(
+                            color: AppColors.subtle,
+                            fontSize: 14,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    color: AppColors.subtle,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => setState(() => _selectedEventData = null),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  _Chip(
+                    label: eventData['category'],
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  _Chip(
+                    label: eventData['type'],
+                    color: _typeAccentColor(eventData['type']),
+                    isTypeLabel: true,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Description',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.title,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                eventDescription,
+                style: const TextStyle(
+                  color: AppColors.subtle,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    eventData['date'],
+                    style: const TextStyle(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    eventData['distance'] != null
+                        ? '${eventData['location']} • ${(eventData['distance'] as num).round()} mi'
+                        : '${eventData['location']}',
+                    style: const TextStyle(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.groups_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Ages ${eventData['ageMin']} - ${eventData['ageMax']}',
+                    style: const TextStyle(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.language_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: organizationWebsite.isEmpty
+                            ? null
+                            : () => _openOrganizationWebsiteLink(
+                                context: context,
+                                websiteLink: organizationWebsite,
+                              ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 28),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          alignment: Alignment.centerLeft,
+                        ),
+                        icon: const Icon(Icons.open_in_new, size: 14),
+                        label: Text(
+                          organizationWebsite.isEmpty
+                              ? 'No organization website provided'
+                              : 'Visit organization website',
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -986,12 +1017,30 @@ class _StudentScreenState extends State<StudentScreen> {
       ),
     );
 
+    if (isDesktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [heading, const SizedBox(height: 22), description],
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(child: _buildEventDetailsPanel(isDesktop)),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         heading,
         const SizedBox(height: 16),
         description,
+        const SizedBox(height: 18),
+        _buildEventDetailsPanel(isDesktop),
       ],
     );
   }
@@ -1194,7 +1243,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 return _EventCard(
                                   eventData: eventData,
                                   onViewDetails: () =>
-                                      _showEventDetails(eventData),
+                                      setState(() => _selectedEventData = eventData),
                                   onReport: () => _showReportDialog(eventData),
                                 );
                               },
