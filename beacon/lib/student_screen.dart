@@ -11,7 +11,6 @@ const double _browseDesktopBreakpoint = 1080;
 const double _browseTabletBreakpoint = 760;
 const String _eventPlaceholderImageAsset = AppAssets.stemLogoPlaceholder;
 
-
 Color _typeAccentColor(String type) {
   switch (type) {
     case 'Club':
@@ -98,7 +97,6 @@ class _StudentScreenState extends State<StudentScreen> {
   final ScrollController _browseScrollController = ScrollController();
   Map<String, dynamic>? _selectedEventData;
 
-
   final Map<String, bool> _types = {
     'Club': false,
     'Event': false,
@@ -114,28 +112,23 @@ class _StudentScreenState extends State<StudentScreen> {
     'Physics': false,
   };
 
-
   List<Map<String, dynamic>> _filterEvents(List<Map<String, dynamic>> all) {
     return all.where((event) {
-      if (_age < (event['ageMin'] as num? ?? 0) || _age > (event['ageMax'] as num? ?? 99)) return false;
+      if (_age < (event['ageMin'] as num? ?? 0) ||
+          _age > (event['ageMax'] as num? ?? 99)) {
+        return false;
+      }
       if (_types[event['type']] == false) return false;
       if (_categories[event['category']] == false) return false;
       return true;
     }).toList();
   }
 
-
-
-
-
-
   String _formatUsDate(DateTime date) {
     final month = date.month.toString().padLeft(2, '0');
     final day = date.day.toString().padLeft(2, '0');
     return '$month/$day/${date.year}';
   }
-
-
 
   @override
   void dispose() {
@@ -774,9 +767,7 @@ class _StudentScreenState extends State<StudentScreen> {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(AppRadii.lg),
-          border: Border.all(
-            color: AppColors.border.withValues(alpha: 0.7),
-          ),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
           boxShadow: [
             BoxShadow(
               color: AppColors.ink.withValues(alpha: 0.05),
@@ -868,10 +859,7 @@ class _StudentScreenState extends State<StudentScreen> {
               const SizedBox(height: 14),
               Row(
                 children: [
-                  _Chip(
-                    label: eventData['category'],
-                    color: AppColors.primary,
-                  ),
+                  _Chip(label: eventData['category'], color: AppColors.primary),
                   const SizedBox(width: 8),
                   _Chip(
                     label: eventData['type'],
@@ -1000,7 +988,10 @@ class _StudentScreenState extends State<StudentScreen> {
     return (width * 0.58).clamp(340.0, 376.0);
   }
 
-  Widget _buildBrowseOverview(bool isDesktop, List<Map<String, dynamic>> filteredEvents) {
+  Widget _buildBrowseOverview(
+    bool isDesktop,
+    List<Map<String, dynamic>> filteredEvents,
+  ) {
     final heading = Text(
       'Discover STEM\nopportunities near you',
       style: Theme.of(
@@ -1208,9 +1199,8 @@ class _StudentScreenState extends State<StudentScreen> {
                           const SizedBox(height: 14),
                           Text(
                             'Browse local STEM events',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: isDesktop ? 34 : 30,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontSize: isDesktop ? 34 : 30),
                           ),
                           const SizedBox(height: 10),
                           if (filteredEvents.isEmpty)
@@ -1242,8 +1232,9 @@ class _StudentScreenState extends State<StudentScreen> {
                                 final eventData = filteredEvents[index];
                                 return _EventCard(
                                   eventData: eventData,
-                                  onViewDetails: () =>
-                                      setState(() => _selectedEventData = eventData),
+                                  onViewDetails: () => setState(
+                                    () => _selectedEventData = eventData,
+                                  ),
                                   onReport: () => _showReportDialog(eventData),
                                 );
                               },
@@ -1303,6 +1294,10 @@ class _EventCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = (eventData['type'] as String?) ?? 'Event';
+    final category =
+        (eventData['category'] as String?)?.trim().isNotEmpty == true
+        ? eventData['category'] as String
+        : 'General';
     final typeColor = _typeAccentColor(type);
     final typeTint = _typeTintColor(type);
     final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
@@ -1350,10 +1345,17 @@ class _EventCard extends StatelessWidget {
                   Positioned(
                     top: 10,
                     left: 10,
-                    child: _Chip(
-                      label: type,
-                      color: typeColor,
-                      isTypeLabel: true,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _Chip(label: type, color: typeColor, isTypeLabel: true),
+                        const SizedBox(height: 6),
+                        _Chip(
+                          label: category,
+                          color: AppColors.primary,
+                          isTypeLabel: true,
+                        ),
+                      ],
                     ),
                   ),
                   Positioned(
@@ -1538,14 +1540,10 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isTypeLabel
-            ? AppColors.card
-            : color.withValues(alpha: 0.1),
+        color: isTypeLabel ? AppColors.card : color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadii.xl),
         border: isTypeLabel
-            ? Border.all(
-                color: color.withValues(alpha: 0.55),
-              )
+            ? Border.all(color: color.withValues(alpha: 0.55))
             : null,
       ),
       child: Text(
