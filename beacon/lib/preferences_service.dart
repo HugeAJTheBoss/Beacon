@@ -1,3 +1,21 @@
+// SharedPreferences (core storage used in this file)
+// https://pub.dev/packages/shared_preferences
+
+// Flutter official guide: Store key-value data locally
+// https://docs.flutter.dev/cookbook/persistence/key-value
+
+// Dart async/await (used for Future, async functions)
+// https://dart.dev/codelabs/async-await
+
+// Dart collections (Map, List, .where(), .map(), etc.)
+// https://dart.dev/guides/language/language-tour#collections
+
+// Dart DateTime (used for DOB storage + age calculation)
+// https://api.dart.dev/stable/dart-core/DateTime-class.html
+
+// Flutter architecture / separation of logic (service pattern idea)
+// https://docs.flutter.dev/development/data-and-backend/state-mgmt/simple
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Simple wrapper around SharedPreferences for student settings.
@@ -173,13 +191,13 @@ class PreferencesService {
     await prefs.setString(_keyDob, dob.toIso8601String());
     await prefs.setString(_keyZip, zip);
     await prefs.setDouble(_keyDistance, distance);
-    
+
     final enabledTypes = types.entries.where((e) => e.value).map((e) => e.key).toList();
     await prefs.setStringList(_keyTypes, enabledTypes);
-    
+
     final enabledCats = categories.entries.where((e) => e.value).map((e) => e.key).toList();
     await prefs.setStringList(_keyCategories, enabledCats);
-    
+
     await prefs.setBool(_keySetupComplete, true);
   }
 }

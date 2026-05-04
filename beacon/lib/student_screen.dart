@@ -1,3 +1,15 @@
+// Tutorials/sources used for this screen:
+// StatefulWidget lifecycle:       https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
+// Modal bottom sheet patterns:    https://www.geeksforgeeks.org/flutter-modalBottomSheet/
+// DraggableScrollableSheet:       https://www.geeksforgeeks.org/draggablescrollablesheet-in-flutter/
+// StreamBuilder usage:            https://www.geeksforgeeks.org/flutter-streambuilder-widget/
+// ListView.builder usage:         https://www.geeksforgeeks.org/flutter-listview-builder/
+// FilterChip usage:               https://www.geeksforgeeks.org/filter-chip-in-flutter/
+// ChoiceChip usage:               https://www.geeksforgeeks.org/chip-widgets-in-flutter/
+// Date picker pattern:            https://www.geeksforgeeks.org/flutter-set-and-get-date-time-in-datepicker/
+// url_launcher package:           https://pub.dev/packages/url_launcher
+// Flutter mounted check (needed): https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

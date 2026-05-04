@@ -1,3 +1,13 @@
+// Tutorials/sources used for this screen:
+// StatefulWidget basics:          https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
+// Form validation pattern:        https://docs.flutter.dev/cookbook/forms/validation
+// AlertDialog usage:              https://www.geeksforgeeks.org/flutter-alertdialog-widget/
+// Navigator push/pop patterns:    https://www.geeksforgeeks.org/flutter-navigator/
+// TextFormField usage:            https://www.geeksforgeeks.org/flutter-textformfield/
+// Password visibility pattern:    https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
+// Circular progress indicator:    https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
+// mounted check (needed):         https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
+
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'org_register_choice_screen.dart';
@@ -19,6 +29,8 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _passwordVisible = false;
   bool _isLoading = false;
 
+  // showDialog - displays a Material dialog above the current screen
+  // Tutorial: https://www.geeksforgeeks.org/flutter-alertdialog-widget/
   Future<void> _showStatusDialog({
     required String title,
     required String message,
@@ -28,6 +40,8 @@ class _SignInScreenState extends State<SignInScreen> {
     return showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
+        // RoundedRectangleBorder - gives the dialog rounded corners
+        // Source: https://api.flutter.dev/flutter/painting/RoundedRectangleBorder-class.html
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
         ),
@@ -75,12 +89,16 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   void dispose() {
+    // Controllers must be disposed to free memory when the widget is removed
+    // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   void _signIn() async {
+    // _formKey.currentState!.validate() - runs all validator functions in the Form
+    // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
@@ -91,9 +109,11 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       setState(() => _isLoading = false);
-      if (!mounted) return;
+      if (!mounted) return; // prevents acting on a disposed widget
 
       if (user != null) {
+        // Navigator.pushReplacement - replaces the current route so the user can't go back
+        // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/pushReplacement.html
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
@@ -138,6 +158,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
+    // Tutorial: https://www.geeksforgeeks.org/flutter-scaffold-widget/
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -145,12 +167,18 @@ class _SignInScreenState extends State<SignInScreen> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
+      // SafeArea - prevents content from being hidden behind notches or system UI
+      // Source: https://api.flutter.dev/flutter/widgets/SafeArea-class.html
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
+            // SingleChildScrollView - makes the form scrollable when the keyboard is open
+            // Tutorial: https://www.geeksforgeeks.org/flutter-single-child-scroll-view/
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              // Form - groups TextFormFields and manages validation together
+              // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
               child: Form(
                 key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -189,6 +217,8 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: 28),
 
                     // Form card
+                    // Container with BoxDecoration - rounded corners and a soft drop shadow
+                    // Tutorial: https://www.geeksforgeeks.org/flutter-container-widget/
                     Container(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
                       decoration: BoxDecoration(
@@ -207,6 +237,8 @@ class _SignInScreenState extends State<SignInScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Google sign-in button
+                          // OutlinedButton - border-only button used for secondary actions
+                          // Source: https://api.flutter.dev/flutter/material/OutlinedButton-class.html
                           SizedBox(
                             height: 52,
                             child: OutlinedButton(
@@ -236,6 +268,8 @@ class _SignInScreenState extends State<SignInScreen> {
                           const SizedBox(height: AppSpacing.lg),
 
                           // Divider
+                          // Row with Dividers - common Flutter pattern for an "or" separator line
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-divider-widget/
                           const Row(
                             children: [
                               Expanded(child: Divider()),
@@ -255,6 +289,8 @@ class _SignInScreenState extends State<SignInScreen> {
                           const SizedBox(height: AppSpacing.lg),
 
                           // Email field
+                          // TextFormField - a text input that integrates with Form validation
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-textformfield/
                           Padding(
                             padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                             child: TextFormField(
@@ -274,15 +310,19 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
 
                           // Password field
+                          // obscureText - hides password characters
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: TextFormField(
                               controller: _passwordController,
-                              obscureText: !_passwordVisible,
+                              obscureText: !_passwordVisible, // toggles password visibility
                               textInputAction: TextInputAction.done,
                               autofillHints: const [AutofillHints.password],
                               decoration: InputDecoration(
                                 labelText: 'Password',
+                                // suffixIcon with IconButton - tapping the eye icon toggles visibility
+                                // Source: https://api.flutter.dev/flutter/material/IconButton-class.html
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _passwordVisible
@@ -300,6 +340,8 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
 
                           // Forgot password
+                          // TextButton - flat button used for low-emphasis actions
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-textbutton-widget/
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
@@ -316,8 +358,12 @@ class _SignInScreenState extends State<SignInScreen> {
                           const SizedBox(height: AppSpacing.sm),
 
                           // Sign in button
+                          // ElevatedButton - filled button for primary actions
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
                           ElevatedButton(
                             onPressed: _isLoading ? null : _signIn,
+                            // CircularProgressIndicator - spinner shown while the async sign-in runs
+                            // Tutorial: https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
                             child: _isLoading
                                 ? const SizedBox(
                                     height: 20,
@@ -343,6 +389,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                               ),
                               TextButton(
+                                // Navigator.push - pushes a new route onto the navigation stack
+                                // Tutorial: https://www.geeksforgeeks.org/flutter-navigator/
                                 onPressed: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(

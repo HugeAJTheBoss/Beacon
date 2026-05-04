@@ -1,3 +1,15 @@
+// Sources also used in previous files
+// StatefulWidget/StatelessWidget: https://api.flutter.dev/flutter/widgets/StatefulWidget-class.html
+// TextEditingController:          https://api.flutter.dev/flutter/widgets/TextEditingController-class.html
+// GlobalKey<FormState>/validate(): https://api.flutter.dev/flutter/widgets/FormState-class.html
+// Navigator/MaterialPageRoute:    https://api.flutter.dev/flutter/widgets/Navigator/push.html
+// ElevatedButton/OutlinedButton:  https://api.flutter.dev/flutter/material/ElevatedButton-class.html
+// Scaffold/AppBar:                https://api.flutter.dev/flutter/material/Scaffold-class.html
+// setState/mounted/dispose:       https://api.flutter.dev/flutter/widgets/State/setState.html
+// SafeArea:                       https://api.flutter.dev/flutter/widgets/SafeArea-class.html
+// Form:                           https://api.flutter.dev/flutter/widgets/Form-class.html
+// InputDecoration:                https://api.flutter.dev/flutter/material/InputDecoration-class.html
+
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'signin_screen.dart';
@@ -23,6 +35,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   bool _isLoading = false;
 
   void _openSignInScreen() {
+    // Navigator.push - pushes a new route onto the navigation stack
+    // Tutorial: https://www.geeksforgeeks.org/flutter-navigator/
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const SignInScreen()),
@@ -31,6 +45,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
 
   @override
   void dispose() {
+    // Controllers must be disposed to free memory when the widget is removed
+    // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -41,6 +57,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   }
 
   void _submitForm() async {
+    // _formKey.currentState!.validate() - runs all validator functions in the Form
+    // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
@@ -54,7 +72,9 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     );
 
     setState(() => _isLoading = false);
-    if (!mounted) return;
+    if (!mounted) return; // prevents acting on a disposed widget
+    // Navigator.pushReplacement - replaces the current route so the user can't go back to the form
+    // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/pushReplacement.html
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const PendingApprovalScreen()),
@@ -111,6 +131,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   }
 
   /// Builds a standard form text field with bottom spacing.
+  // Reusable TextFormField wrapper to avoid repeating decoration boilerplate (DRY principle)
+  // Source: https://dart.dev/effective-dart/design
   Widget _field({
     required TextEditingController controller,
     required String label,
@@ -121,6 +143,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      // TextFormField - a text input that integrates with Form validation
+      // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
       child: TextFormField(
         controller: controller,
         keyboardType: maxLines > 1 ? TextInputType.multiline : keyboardType,
@@ -135,6 +159,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
+    // Tutorial: https://www.geeksforgeeks.org/flutter-scaffold-widget/
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -142,12 +168,18 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
+      // SafeArea - prevents content from being hidden behind notches or system UI
+      // Source: https://api.flutter.dev/flutter/widgets/SafeArea-class.html
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 540),
+            // SingleChildScrollView - makes the form scrollable when the keyboard is open
+            // Tutorial: https://www.geeksforgeeks.org/flutter-single-child-scroll-view/
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              // Form - groups TextFormFields and manages validation together
+              // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
               child: Form(
                 key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -155,6 +187,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Info panel
+                    // Container with BoxDecoration - rounded corners + light tint background
+                    // Tutorial: https://www.geeksforgeeks.org/flutter-container-widget/
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
@@ -165,6 +199,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                       child: const Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Icon widget - displays a Material icon at a given size and color
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-icon-widget/
                           Icon(
                             Icons.apartment_rounded,
                             color: AppColors.primary,
@@ -187,6 +223,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // Form card
+                    // BoxShadow - adds a subtle shadow beneath the card
+                    // Source: https://api.flutter.dev/flutter/painting/BoxShadow-class.html
                     Container(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
                       decoration: BoxDecoration(
@@ -219,15 +257,19 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                           ),
 
                           // Password (custom because of visibility toggle)
+                          // TextFormField with obscureText - hides password characters
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-textformfield/
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: TextFormField(
                               controller: _passwordController,
-                              obscureText: !_passwordVisible,
+                              obscureText: !_passwordVisible, // toggles password visibility
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.newPassword],
                               decoration: InputDecoration(
                                 labelText: 'Password',
+                                // suffixIcon with IconButton - tapping the eye icon toggles visibility
+                                // Source: https://api.flutter.dev/flutter/material/IconButton-class.html
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _passwordVisible
@@ -259,6 +301,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                           ),
 
                           // Info hint
+                          // Container with withValues(alpha:) - tinted info banner using primary color at low opacity
+                          // Source: https://api.flutter.dev/flutter/dart-ui/Color/withValues.html
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Container(
@@ -312,8 +356,12 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                           const SizedBox(height: AppSpacing.xl),
 
                           // Submit button
+                          // ElevatedButton - filled button for primary actions
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
                           ElevatedButton(
                             onPressed: _isLoading ? null : _submitForm,
+                            // CircularProgressIndicator - spinner shown while the async submit is running
+                            // Tutorial: https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
                             child: _isLoading
                                 ? const SizedBox(
                                     height: 20,
@@ -326,6 +374,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                                 : const Text('Submit application'),
                           ),
                           const SizedBox(height: AppSpacing.lg),
+                          // TextButton - flat button used for low-emphasis actions
+                          // Tutorial: https://www.geeksforgeeks.org/flutter-textbutton-widget/
                           TextButton(
                             onPressed: _openSignInScreen,
                             child: const Text(
@@ -366,10 +416,14 @@ class PendingApprovalScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
+          // Column with mainAxisAlignment.center - centers content vertically on the screen
+          // Tutorial: https://www.geeksforgeeks.org/flutter-column-widget/
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Icon widget - displays a Material icon at a given size and color
+              // Tutorial: https://www.geeksforgeeks.org/flutter-icon-widget/
               const Icon(
                 Icons.hourglass_top_rounded,
                 size: 72,
@@ -397,6 +451,8 @@ class PendingApprovalScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
+                // Navigator.popUntil - pops all routes until the very first screen is reached
+                // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/popUntil.html
                 onPressed: () =>
                     Navigator.popUntil(context, (r) => r.isFirst),
                 child: const Text('Back to Home'),
