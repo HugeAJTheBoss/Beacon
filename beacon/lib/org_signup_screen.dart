@@ -1,8 +1,10 @@
+// Flutter Material widgets such as MaterialApp, Scaffold, AppBar, Buttons inspired by https://www.geeksforgeeks.org/flutter/flutter-material-design/
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'signin_screen.dart';
 import 'services/auth_service.dart';
 
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class OrgSignupScreen extends StatefulWidget {
   const OrgSignupScreen({super.key});
 
@@ -11,7 +13,9 @@ class OrgSignupScreen extends StatefulWidget {
 }
 
 class _OrgSignupScreenState extends State<OrgSignupScreen> {
+  // GlobalKey<FormState> (identify and validate a Form): https://www.geeksforgeeks.org/flutter-form-validation/
   final _formKey = GlobalKey<FormState>();
+  // TextEditingController (read and control TextField input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -19,6 +23,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   final _einController = TextEditingController();
   final _descriptionController = TextEditingController();
 
+  // bool state variables: https://www.geeksforgeeks.org/dart/dart-data-types/
   bool _passwordVisible = false;
   bool _isLoading = false;
 
@@ -29,6 +34,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     );
   }
 
+  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _nameController.dispose();
@@ -40,8 +46,11 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     super.dispose();
   }
 
+  // async/await for asynchronous operations: https://www.geeksforgeeks.org/using-await-async-in-dart/
   void _submitForm() async {
+    // Form validation: https://www.geeksforgeeks.org/flutter-form-validation/
     if (!_formKey.currentState!.validate()) return;
+    // setState (trigger UI rebuild): https://www.geeksforgeeks.org/flutter/flutter-state-management/
     setState(() => _isLoading = true);
 
     await AuthService().registerOrg(
@@ -55,6 +64,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
 
     setState(() => _isLoading = false);
     if (!mounted) return;
+    // Navigator.pushReplacement (replace current route): https://www.geeksforgeeks.org/routes-and-navigator-in-flutter/
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const PendingApprovalScreen()),
@@ -111,6 +121,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   }
 
   /// Builds a standard form text field with bottom spacing.
+  // TextFormField (validated form text input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
   Widget _field({
     required TextEditingController controller,
     required String label,
@@ -135,17 +146,22 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
+      // AppBar (top navigation bar): https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
       appBar: AppBar(
         title: const Text(
           'Register Organization',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
+      // SafeArea (avoid system UI intrusions): https://www.geeksforgeeks.org/flutter/flutter-safearea-widget/
       body: SafeArea(
         child: Center(
+          // ConstrainedBox (limit widget dimensions): https://www.geeksforgeeks.org/flutter/constrainedbox-widget-in-flutter/
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 540),
+            // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               child: Form(
@@ -187,6 +203,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                     const SizedBox(height: AppSpacing.lg),
 
                     // Form card
+                    // Container (layout + styling wrapper): https://www.geeksforgeeks.org/flutter-working-with-layouts/
+                    // BoxDecoration (borders, radius, shadows): https://www.geeksforgeeks.org/flutter-boxdecoration-widget/
                     Container(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
                       decoration: BoxDecoration(
@@ -218,7 +236,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                             validator: _validateEmail,
                           ),
 
-                          // Password (custom because of visibility toggle)
+                          // Password field with obscureText visibility toggle: https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: TextFormField(
@@ -311,7 +329,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                           ),
                           const SizedBox(height: AppSpacing.xl),
 
-                          // Submit button
+                          // Submit ElevatedButton with CircularProgressIndicator loading state: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
+                          // CircularProgressIndicator (loading spinner): https://www.geeksforgeeks.org/flutter-set-size-to-circularprogressindicator/
                           ElevatedButton(
                             onPressed: _isLoading ? null : _submitForm,
                             child: _isLoading

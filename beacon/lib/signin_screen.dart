@@ -1,9 +1,11 @@
+// Flutter Material widgets such as MaterialApp, Scaffold, AppBar, Buttons inspired by https://www.geeksforgeeks.org/flutter/flutter-material-design/
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'org_register_choice_screen.dart';
 import 'org_dashboard_screen.dart';
 import 'services/auth_service.dart';
 
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -12,13 +14,17 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  // GlobalKey<FormState> (identify and validate a Form): https://www.geeksforgeeks.org/flutter-form-validation/
   final _formKey = GlobalKey<FormState>();
+  // TextEditingController (read and control TextField input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // bool state variables to track UI state: https://www.geeksforgeeks.org/dart/dart-data-types/
   bool _passwordVisible = false;
   bool _isLoading = false;
 
+  // showDialog / AlertDialog (modal dialog for status messages): https://www.geeksforgeeks.org/flutter/flutter-alertdialog-widget/
   Future<void> _showStatusDialog({
     required String title,
     required String message,
@@ -73,6 +79,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
+  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _emailController.dispose();
@@ -80,8 +87,11 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
+  // async/await and try-catch for error handling: https://www.geeksforgeeks.org/using-await-async-in-dart/
   void _signIn() async {
+    // Form validation: https://www.geeksforgeeks.org/flutter-form-validation/
     if (!_formKey.currentState!.validate()) return;
+    // setState (trigger UI rebuild): https://www.geeksforgeeks.org/flutter/flutter-state-management/
     setState(() => _isLoading = true);
 
     try {
@@ -94,6 +104,7 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
 
       if (user != null) {
+        // Navigator.pushReplacement (replace current route): https://www.geeksforgeeks.org/routes-and-navigator-in-flutter/
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
@@ -138,17 +149,22 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
+      // AppBar (top navigation bar): https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
       appBar: AppBar(
         title: const Text(
           'Sign in',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
+      // SafeArea (avoid system UI intrusions): https://www.geeksforgeeks.org/flutter/flutter-safearea-widget/
       body: SafeArea(
         child: Center(
+          // ConstrainedBox (limit widget dimensions): https://www.geeksforgeeks.org/flutter/constrainedbox-widget-in-flutter/
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
+            // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               child: Form(
@@ -160,14 +176,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     // Logo
                     Align(
                       alignment: Alignment.center,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppRadii.md),
-                        child: Image.asset(
-                          AppAssets.stemLogoPlaceholder,
-                          width: 180,
-                          height: 110,
-                          fit: BoxFit.cover,
-                        ),
+                      child: Image.asset(
+                        AppAssets.beaconLogo,
+                        width: 160,
+                        height: 100,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -254,7 +267,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           const SizedBox(height: AppSpacing.lg),
 
-                          // Email field
+                          // Email TextFormField (validated text input): https://www.geeksforgeeks.org/flutter/retrieve-data-from-textfields-in-flutter/
                           Padding(
                             padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                             child: TextFormField(
@@ -273,7 +286,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ),
 
-                          // Password field
+                          // Password TextFormField with obscureText toggle: https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
                           Padding(
                             padding: const EdgeInsets.only(bottom: 4),
                             child: TextFormField(
@@ -315,9 +328,10 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           const SizedBox(height: AppSpacing.sm),
 
-                          // Sign in button
+                          // Sign in ElevatedButton with loading indicator: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
                           ElevatedButton(
                             onPressed: _isLoading ? null : _signIn,
+                            // CircularProgressIndicator (loading spinner): https://www.geeksforgeeks.org/flutter-set-size-to-circularprogressindicator/
                             child: _isLoading
                                 ? const SizedBox(
                                     height: 20,

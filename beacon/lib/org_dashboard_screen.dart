@@ -1,3 +1,4 @@
+// Flutter Material widgets such as MaterialApp, Scaffold, AppBar, Buttons inspired by https://www.geeksforgeeks.org/flutter/flutter-material-design/
 import 'package:flutter/material.dart';
 
 import 'app_theme.dart';
@@ -5,6 +6,7 @@ import 'preferences_service.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class OrgDashboardScreen extends StatefulWidget {
   const OrgDashboardScreen({super.key});
 
@@ -29,6 +31,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
 
   String _activeStatusFilter = 'All';
 
+  // switch statement in Dart: https://www.geeksforgeeks.org/switch-case-in-dart/
   Color _statusColorForFilter(String status) {
     switch (status) {
       case 'Upcoming':
@@ -42,7 +45,9 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     }
   }
 
+  // showDialog (display a modal dialog over the UI): https://www.geeksforgeeks.org/flutter/flutter-dialogs/
   void _deleteEvent(Map<String, dynamic> eventData) {
+    // AlertDialog (standard dialog with title, content, actions): https://www.geeksforgeeks.org/alert-dialog-box-in-flutter/
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -54,7 +59,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.title),
         ),
         content: Text(
-          'Are you sure you want to delete "${eventData['title']}"? This cannot be undone.',
+          'Are you sure you want to delete "${eventData['title']}"? This cannot be undone.', // NIGGA CHANGE THIS
           style: const TextStyle(color: AppColors.subtle, height: 1.5),
         ),
         actions: [
@@ -126,6 +131,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     );
   }
 
+  // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
   void _openAddEventSheet() {
     showModalBottomSheet(
       context: context,
@@ -179,6 +185,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     );
   }
 
+  // FloatingActionButton (primary action FAB): https://www.geeksforgeeks.org/flutter-floatingactionbutton/
   Widget _buildFab() {
     return FloatingActionButton.extended(
       onPressed: _openAddEventSheet,
@@ -194,6 +201,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
 
 
   Widget _buildStatusFilterChips() {
+    // ListView (scrollable list of widgets): https://www.geeksforgeeks.org/flutter/flutter-listview/
     return SizedBox(
       height: 34,
       child: ListView.separated(
@@ -205,10 +213,12 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final isSelected = status == _activeStatusFilter;
           final statusColor = _statusColorForFilter(status);
 
+          // AnimatedScale (animate scale of a child widget): https://www.geeksforgeeks.org/flutter/flutter-animatedscale-widget/
           return AnimatedScale(
             scale: isSelected ? 1 : 0.97,
             duration: _microDuration,
             curve: Curves.easeOutCubic,
+            // ChoiceChip (single-select chip): https://www.geeksforgeeks.org/flutter-chips/
             child: ChoiceChip(
               label: Text(status),
               selected: isSelected,
@@ -259,6 +269,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       );
     }
 
+    // ListView.builder (efficient lazily built list): https://www.geeksforgeeks.org/flutter-listview/
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(
         _pagePadding,
@@ -283,6 +294,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     required int upcoming,
     required int draft,
   }) {
+    // LayoutBuilder (rebuild when constraints change): https://www.geeksforgeeks.org/flutter/flutter-layoutbuilder-widget/
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 560) {
@@ -366,6 +378,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         ),
       ),
       floatingActionButton: _buildFab(),
+      // StreamBuilder (rebuild UI on real-time stream updates): https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: DatabaseService().getOrgOpportunities(orgId),
         builder: (context, snapshot) {
@@ -384,6 +397,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
             children: [
               _buildDashboardHeaderSectionWithData(total: total, upcoming: upcoming, draft: draft),
               Expanded(
+        // AnimatedSwitcher (animate between two different child widgets): https://www.geeksforgeeks.org/flutter-animatedswitcher-widget/
                 child: AnimatedSwitcher(
                   duration: _microDuration,
                   switchInCurve: Curves.easeOutCubic,
@@ -711,7 +725,7 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-// bottom sheet form for adding or editing an event
+// StatefulWidget for the Add/Edit event bottom sheet form: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class _AddEventSheet extends StatefulWidget {
   final Map<String, dynamic>? existingEvent;
   final ValueChanged<Map<String, dynamic>> onSubmit;
@@ -723,7 +737,9 @@ class _AddEventSheet extends StatefulWidget {
 }
 
 class _AddEventSheetState extends State<_AddEventSheet> {
+  // GlobalKey<FormState> (identify and validate a Form): https://www.geeksforgeeks.org/flutter/flutter-forms/
   final _formKey = GlobalKey<FormState>();
+  // TextEditingController (read and control TextField input): https://www.geeksforgeeks.org/flutter/flutter-texteditingcontroller/
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
@@ -737,7 +753,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   String _status = 'Upcoming';
   int _ageMin = 10;
   int _ageMax = 24;
-  String _optionalImagePath = '';
 
   final List<String> _categories = [
     'Robotics',
@@ -772,13 +787,9 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     _status = existingEventData['status'] ?? 'Upcoming';
     _ageMin = existingEventData['ageMin'] ?? 10;
     _ageMax = existingEventData['ageMax'] ?? 24;
-    _optionalImagePath = existingEventData['imageUrl'] ?? '';
   }
 
-  void _handleOptionalImageTap() {
-    // image upload needs to be implemented.
-  }
-
+  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _titleController.dispose();
@@ -806,7 +817,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
       'cost': _costController.text.trim(),
       'capacity': int.tryParse(_capacityController.text.trim()) ?? 0,
       'link': _linkController.text.trim(),
-      'imageUrl': _optionalImagePath,
       'status': _status,
     });
     Navigator.pop(context);
@@ -869,6 +879,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                 child: SingleChildScrollView(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                  // Form widget with validation: https://www.geeksforgeeks.org/flutter-form-validation/
                   child: Form(
                     key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -971,6 +982,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                                       fontSize: 13,
                                     ),
                                   ),
+                                  // Slider (select a value from a range): https://www.geeksforgeeks.org/flutter/flutter-slider-widget/
                                   Slider(
                                     value: _ageMin.toDouble(),
                                     min: 5,
@@ -1043,27 +1055,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                             return null;
                           },
                         ),
-
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Optional Image',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: AppColors.title,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: _handleOptionalImageTap,
-                          icon: const Icon(Icons.add_photo_alternate_outlined),
-                          label: Text(
-                            _optionalImagePath.isEmpty
-                                ? 'Add Optional Image'
-                                : 'Image Added',
-                          ),
-                        ),
-                        const SizedBox(height: 6),
 
                         const SizedBox(height: 8),
 
@@ -1179,6 +1170,7 @@ class _DropdownField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
+      // DropdownButtonFormField (form-integrated dropdown selector): https://www.geeksforgeeks.org/flutter/flutter-dropdownbutton-widget/
       child: DropdownButtonFormField<String>(
         initialValue: value,
         isDense: false,

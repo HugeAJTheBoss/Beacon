@@ -1,6 +1,9 @@
+// Flutter Material widgets such as MaterialApp, Scaffold, AppBar, Buttons inspired by https://www.geeksforgeeks.org/flutter/flutter-material-design/
 import 'package:flutter/material.dart';
+// FilteringTextInputFormatter (restrict text input to certain characters): https://www.geeksforgeeks.org/flutter/flutter-textinputformatter/
 import 'package:flutter/services.dart';
 
+// url_launcher (open URLs in external browser or app): https://www.geeksforgeeks.org/flutter/flutter-open-url-in-browser/
 import 'package:url_launcher/url_launcher.dart';
 import 'link_opener_stub.dart' if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
@@ -9,8 +12,8 @@ import 'services/database_service.dart';
 
 const double _browseDesktopBreakpoint = 1080;
 const double _browseTabletBreakpoint = 760;
-const String _eventPlaceholderImageAsset = AppAssets.stemLogoPlaceholder;
 
+// switch statement used for color mapping: https://www.geeksforgeeks.org/switch-case-in-dart/
 Color _typeAccentColor(String type) {
   switch (type) {
     case 'Club':
@@ -27,20 +30,6 @@ Color _typeTintColor(String type) {
   return _typeAccentColor(type).withValues(alpha: 0.12);
 }
 
-String _defaultImageForType(String type) {
-  // Keep the hook for type-specific assets while using one shared placeholder.
-  return _eventPlaceholderImageAsset;
-}
-
-String _resolveEventImageAsset(Map<String, dynamic> eventData) {
-  final imageAsset = (eventData['imageAsset'] as String?)?.trim();
-  if (imageAsset != null && imageAsset.isNotEmpty) {
-    return imageAsset;
-  }
-
-  final type = (eventData['type'] as String?) ?? 'Event';
-  return _defaultImageForType(type);
-}
 
 Future<void> _openOrganizationWebsiteLink({
   required BuildContext context,
@@ -82,6 +71,7 @@ Future<void> _openOrganizationWebsiteLink({
   }
 }
 
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
   @override
@@ -94,9 +84,11 @@ class _StudentScreenState extends State<StudentScreen> {
   String _zip = '';
   DateTime? _dob;
   bool _loading = true;
+  // ScrollController (control scrollable widgets programmatically): https://www.geeksforgeeks.org/flutter/flutter-scrollcontroller/
   final ScrollController _browseScrollController = ScrollController();
   Map<String, dynamic>? _selectedEventData;
 
+  // Map (key-value pairs for filter state): https://www.geeksforgeeks.org/dart-programming-map/
   final Map<String, bool> _types = {
     'Club': false,
     'Event': false,
@@ -118,8 +110,12 @@ class _StudentScreenState extends State<StudentScreen> {
           _age > (event['ageMax'] as num? ?? 99)) {
         return false;
       }
-      if (_types[event['type']] == false) return false;
-      if (_categories[event['category']] == false) return false;
+      if (_types[event['type']] == false) {
+        return false;
+        }
+      if (_categories[event['category']] == false) {
+        return false;
+          }
       return true;
     }).toList();
   }
@@ -130,12 +126,14 @@ class _StudentScreenState extends State<StudentScreen> {
     return '$month/$day/${date.year}';
   }
 
+  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _browseScrollController.dispose();
     super.dispose();
   }
 
+  // initState (called once when the widget is first created): https://www.geeksforgeeks.org/flutter/flutter-initstate/
   @override
   void initState() {
     super.initState();
@@ -185,6 +183,7 @@ class _StudentScreenState extends State<StudentScreen> {
     }
   }
 
+  // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
   void _showWelcomePopup() {
     DateTime? draftBirthDate;
     final zipController = TextEditingController();
@@ -198,8 +197,10 @@ class _StudentScreenState extends State<StudentScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        // StatefulBuilder (rebuild only the bottom sheet widget subtree): https://www.geeksforgeeks.org/flutter/flutter-statefulbuilder-widget/
         return StatefulBuilder(
           builder: (context, setModalState) {
+            // DraggableScrollableSheet (sheet that can be dragged to resize): https://www.geeksforgeeks.org/flutter/flutter-draggablescrollablesheet/
             return DraggableScrollableSheet(
               initialChildSize: 0.92,
               minChildSize: 0.92,
@@ -268,6 +269,7 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // showDatePicker (built-in calendar date picker): https://www.geeksforgeeks.org/flutter-date-picker-in-flutter/
                           InkWell(
                             onTap: () async {
                               final picked = await showDatePicker(
@@ -420,6 +422,7 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // TextField with FilteringTextInputFormatter (digits only): https://www.geeksforgeeks.org/flutter-textfield-widget/
                           TextField(
                             controller: zipController,
                             keyboardType: TextInputType.number,
@@ -445,6 +448,8 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // Wrap (flow layout that wraps children): https://www.geeksforgeeks.org/wrap-widget-in-flutter/
+                          // FilterChip (toggleable chip for filters): https://www.geeksforgeeks.org/flutter-chips/
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -608,6 +613,7 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
+  // showModalBottomSheet for the report dialog: https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
   void _showReportDialog(Map<String, dynamic> eventData) {
     String? selectedReportReason;
     final TextEditingController reportDetailsController =
@@ -984,10 +990,6 @@ class _StudentScreenState extends State<StudentScreen> {
     return 1;
   }
 
-  double _gridCardHeightForWidth(double width) {
-    return (width * 0.58).clamp(340.0, 376.0);
-  }
-
   Widget _buildBrowseOverview(
     bool isDesktop,
     List<Map<String, dynamic>> filteredEvents,
@@ -1038,6 +1040,7 @@ class _StudentScreenState extends State<StudentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
       drawerEdgeDragWidth: 0,
       backgroundColor: AppColors.background,
@@ -1065,6 +1068,7 @@ class _StudentScreenState extends State<StudentScreen> {
         ],
       ),
 
+      // Drawer (side panel navigation): https://www.geeksforgeeks.org/flutter-drawer-widget/
       endDrawer: Drawer(
         backgroundColor: AppColors.card,
         surfaceTintColor: Colors.transparent,
@@ -1102,6 +1106,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           title: 'Distance',
                           value: '${_distance.round()} mi',
                         ),
+                        // Slider (select a value from a continuous range): https://www.geeksforgeeks.org/flutter-slider-and-rangeslider/
                         Slider(
                           value: _distance,
                           min: 5,
@@ -1131,6 +1136,7 @@ class _StudentScreenState extends State<StudentScreen> {
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Type'),
                         const SizedBox(height: 4),
+                        // CheckboxListTile (checkbox with label): https://www.geeksforgeeks.org/flutter-checkboxlisttile/
                         ..._types.keys.map(
                           (type) => CheckboxListTile(
                             title: Text(type),
@@ -1168,21 +1174,28 @@ class _StudentScreenState extends State<StudentScreen> {
 
       body: _loading
           ? const Center(child: CircularProgressIndicator())
+          // LayoutBuilder (responsive layout using constraints): https://www.geeksforgeeks.org/flutter/flutter-layoutbuilder-widget/
           : LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
                 final isDesktop = width >= _browseDesktopBreakpoint;
                 final columns = _gridColumnsForWidth(width);
-                final cardHeight = _gridCardHeightForWidth(width);
+                final horizontalPadding = isDesktop ? 56.0 : 20.0;
+                final columnGap = 16.0;
+                final availableWidth = width - (horizontalPadding * 2);
+                final columnWidth =
+                  (availableWidth - (columnGap * (columns - 1))) / columns;
 
+                // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter-singlechildscrollview-widget-in-flutter/
                 return SingleChildScrollView(
                   controller: _browseScrollController,
                   padding: EdgeInsets.fromLTRB(
-                    isDesktop ? 56 : 20,
+                    horizontalPadding,
                     24,
-                    isDesktop ? 56 : 20,
+                    horizontalPadding,
                     28,
                   ),
+                // StreamBuilder (rebuild UI on real-time Firestore stream): https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
                   child: StreamBuilder<List<Map<String, dynamic>>>(
                     stream: DatabaseService().getOpportunities(),
                     builder: (context, snapshot) {
@@ -1217,27 +1230,22 @@ class _StudentScreenState extends State<StudentScreen> {
                               ),
                             )
                           else
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: columns,
-                                    crossAxisSpacing: 16,
-                                    mainAxisSpacing: 16,
-                                    mainAxisExtent: cardHeight,
+                            Wrap(
+                              spacing: columnGap,
+                              runSpacing: 16,
+                              children: filteredEvents.map((eventData) {
+                                return SizedBox(
+                                  width: columnWidth,
+                                  child: _EventCard(
+                                    eventData: eventData,
+                                    onViewDetails: () => setState(
+                                      () => _selectedEventData = eventData,
+                                    ),
+                                    onReport: () =>
+                                        _showReportDialog(eventData),
                                   ),
-                              itemCount: filteredEvents.length,
-                              itemBuilder: (context, index) {
-                                final eventData = filteredEvents[index];
-                                return _EventCard(
-                                  eventData: eventData,
-                                  onViewDetails: () => setState(
-                                    () => _selectedEventData = eventData,
-                                  ),
-                                  onReport: () => _showReportDialog(eventData),
                                 );
-                              },
+                              }).toList(),
                             ),
                         ],
                       );
@@ -1292,6 +1300,7 @@ class _EventCard extends StatelessWidget {
   });
 
   @override
+  // Material + InkWell (tappable card with ripple effect): https://www.geeksforgeeks.org/inkwell-widget-in-flutter/
   Widget build(BuildContext context) {
     final type = (eventData['type'] as String?) ?? 'Event';
     final category =
@@ -1301,9 +1310,7 @@ class _EventCard extends StatelessWidget {
     final typeColor = _typeAccentColor(type);
     final typeTint = _typeTintColor(type);
     final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
-    final imageAsset = _resolveEventImageAsset(eventData);
-    final imageUrl = (eventData['imageUrl'] as String?)?.trim();
-
+    // Material (provides ink splash and elevation): https://www.geeksforgeeks.org/flutter/flutter-material-widget/
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadii.lg),
@@ -1327,169 +1334,157 @@ class _EventCard extends StatelessWidget {
             ],
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppRadii.lg),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 7.5,
-                      child: _EventImage(
-                        imageAsset: imageAsset,
-                        imageUrl: imageUrl,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _Chip(
+                            label: type,
+                            color: typeColor,
+                            isTypeLabel: true,
+                          ),
+                          _Chip(
+                            label: category,
+                            color: AppColors.primary,
+                            isTypeLabel: true,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _Chip(label: type, color: typeColor, isTypeLabel: true),
-                        const SizedBox(height: 6),
-                        _Chip(
-                          label: category,
-                          color: AppColors.primary,
-                          isTypeLabel: true,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    right: 2,
-                    top: 2,
-                    child: IconButton(
+                    IconButton(
                       onPressed: onReport,
                       icon: const Icon(
                         Icons.flag_outlined,
-                        color: AppColors.onPrimary,
+                        color: AppColors.subtle,
                         size: 18,
                       ),
                       splashRadius: 18,
                       tooltip: 'Report event',
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: typeTint,
-                          borderRadius: BorderRadius.circular(AppRadii.sm),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              size: 14,
-                              color: typeColor,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                eventData['distance'] != null
-                                    ? '${eventData['location']} • ${(eventData['distance'] as num).round()} mi'
-                                    : '${eventData['location']}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: typeColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        eventData['title'],
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.title,
-                        ),
+                      decoration: BoxDecoration(
+                        color: typeTint,
+                        borderRadius: BorderRadius.circular(AppRadii.sm),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        eventData['org'],
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.subtle,
-                        ),
-                      ),
-                      const Spacer(),
-                      Row(
+                      child: Row(
                         children: [
-                          const Icon(
-                            Icons.calendar_today_outlined,
-                            size: 13,
-                            color: AppColors.subtle,
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: typeColor,
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              eventData['date'],
+                              eventData['distance'] != null
+                                  ? '${eventData['location']} • ${(eventData['distance'] as num).round()} mi'
+                                  : '${eventData['location']}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
+                                color: typeColor,
                                 fontSize: 12,
-                                color: AppColors.subtle,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Text(
-                            'Tap for details',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      eventData['title'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.title,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      eventData['org'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.subtle,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 13,
+                          color: AppColors.subtle,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            eventData['date'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
                               fontSize: 12,
+                              color: AppColors.subtle,
                             ),
                           ),
-                          const Spacer(),
-                          if (organizationWebsite.isNotEmpty)
-                            TextButton.icon(
-                              onPressed: () => _openOrganizationWebsiteLink(
-                                context: context,
-                                websiteLink: organizationWebsite,
-                              ),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: const Size(0, 24),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              icon: const Icon(Icons.open_in_new, size: 13),
-                              label: const Text(
-                                'Website',
-                                style: TextStyle(fontSize: 12),
-                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Text(
+                          'Tap for details',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (organizationWebsite.isNotEmpty)
+                          TextButton.icon(
+                            onPressed: () => _openOrganizationWebsiteLink(
+                              context: context,
+                              websiteLink: organizationWebsite,
                             ),
-                        ],
-                      ),
-                    ],
-                  ),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 24),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            icon: const Icon(Icons.open_in_new, size: 13),
+                            label: const Text(
+                              'Website',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1497,30 +1492,6 @@ class _EventCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _EventImage extends StatelessWidget {
-  final String imageAsset;
-  final String? imageUrl;
-
-  const _EventImage({required this.imageAsset, this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasNetworkImage = imageUrl != null && imageUrl!.isNotEmpty;
-
-    if (hasNetworkImage) {
-      return Image.network(
-        imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) {
-          return Image.asset(imageAsset, fit: BoxFit.cover);
-        },
-      );
-    }
-
-    return Image.asset(imageAsset, fit: BoxFit.cover);
   }
 }
 

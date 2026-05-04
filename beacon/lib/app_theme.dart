@@ -42,9 +42,13 @@ class AppRadii {
 
 class AppAssets {
   static const stemLogoPlaceholder = 'assets/stem_logo_placeholder.jpg';
+  static const beaconLogo = 'assets/beacon_logo.png';
   static const googleLogo = 'assets/google_logo.png';
   static const microsoftLogo = 'assets/ms_logo.png';
   static const appleLogo = 'assets/apple_logo.png';
+  static const roboticsClub = 'assets/robotics_club.png';
+  static const volunteeringClub = 'assets/volunteering_club.png';
+  static const club = 'assets/club.png';
 }
 
 class AppLayout {

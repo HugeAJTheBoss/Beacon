@@ -1,7 +1,9 @@
+// SharedPreferences (persistent key-value storage): https://www.geeksforgeeks.org/shared-preferences-in-android-with-example/
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Simple wrapper around SharedPreferences for student settings.
 /// Works on web (localStorage), Android (SharedPreferences), iOS (NSUserDefaults).
+// Static class / utility class pattern in Dart: https://www.geeksforgeeks.org/dart-classes-and-objects/
 class PreferencesService {
   static const _keyDob = 'student_dob';
   static const _keyZip = 'student_zip';
@@ -14,6 +16,8 @@ class PreferencesService {
 
   static SharedPreferences? _prefs;
 
+  // Future and async/await in Dart: https://www.geeksforgeeks.org/using-await-async-in-dart/
+  // Null-aware assignment operator (??=): https://www.geeksforgeeks.org/operators-in-dart/
   static Future<SharedPreferences> get _instance async {
     _prefs ??= await SharedPreferences.getInstance();
     return _prefs!;
@@ -53,6 +57,7 @@ class PreferencesService {
 
   // --- Date of birth ---
 
+  // DateTime in Dart: https://www.geeksforgeeks.org/dart-date-and-time/
   static Future<void> saveDob(DateTime dob) async {
     final prefs = await _instance;
     await prefs.setString(_keyDob, dob.toIso8601String());
@@ -103,8 +108,10 @@ class PreferencesService {
 
   // --- Types (Club, Event, Volunteering) ---
 
+  // Map in Dart (key-value pairs): https://www.geeksforgeeks.org/dart-programming-map/
   static Future<void> saveEnabledTypes(Map<String, bool> types) async {
     final prefs = await _instance;
+    // List methods (where, map, toList): https://www.geeksforgeeks.org/dart-programming-list/
     final enabled = types.entries
         .where((e) => e.value)
         .map((e) => e.key)
@@ -116,6 +123,7 @@ class PreferencesService {
     final prefs = await _instance;
     final all = ['Club', 'Event', 'Volunteering'];
     final saved = prefs.getStringList(_keyTypes);
+    // Collection-if and spread operators in Dart: https://www.geeksforgeeks.org/dart-collection-if-and-collection-for/
     if (saved == null) return {for (var t in all) t: false};
     return {for (var t in all) t: saved.contains(t)};
   }

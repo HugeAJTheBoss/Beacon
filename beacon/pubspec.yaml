@@ -28,7 +28,11 @@ flutter:
   uses-material-design: true
   assets:
     - assets/beacon_app_bar.png
+    - assets/beacon_logo.png
     - assets/stem_logo_placeholder.jpg
     - assets/google_logo.png
     - assets/ms_logo.png
     - assets/apple_logo.png
+    - assets/robotics_club.png
+    - assets/volunteering_club.png
+    - assets/club.png
