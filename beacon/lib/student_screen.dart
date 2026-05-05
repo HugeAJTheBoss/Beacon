@@ -11,14 +11,84 @@
 // Flutter mounted check (needed): https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
 
 import 'package:flutter/material.dart';
+// FilteringTextInputFormatter (restrict text input to certain characters): https://www.geeksforgeeks.org/flutter/flutter-textinputformatter/
 import 'package:flutter/services.dart';
+
+// url_launcher (open URLs in external browser or app): https://www.geeksforgeeks.org/flutter/flutter-open-url-in-browser/
 import 'package:url_launcher/url_launcher.dart';
-import 'link_opener_stub.dart'
-  if (dart.library.html) 'link_opener_web.dart';
+import 'link_opener_stub.dart' if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
 import 'preferences_service.dart';
 import 'services/database_service.dart';
 
+const double _browseDesktopBreakpoint = 1080;
+const double _browseTabletBreakpoint = 760;
+
+// switch statement used for color mapping: https://www.geeksforgeeks.org/switch-case-in-dart/
+Color _typeAccentColor(String type) {
+  switch (type) {
+    case 'Club':
+      return const Color(0xFF2563EB);
+    case 'Volunteering':
+      return const Color(0xFF9D4EDD);
+    case 'Event':
+    default:
+      return const Color(0xFFD97706);
+  }
+}
+
+Color _typeTintColor(String type) {
+  return _typeAccentColor(type).withValues(alpha: 0.12);
+}
+
+
+Future<void> _openOrganizationWebsiteLink({
+  required BuildContext context,
+  required String opportunityId,
+  required String websiteLink,
+}) async {
+  if (websiteLink.isEmpty) return;
+
+  final normalizedLink =
+      websiteLink.startsWith('http://') || websiteLink.startsWith('https://')
+      ? websiteLink
+      : 'https://$websiteLink';
+  final uri = Uri.tryParse(normalizedLink);
+  if (uri == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Invalid website link for this event.')),
+    );
+    return;
+  }
+
+  var opened = await openInBrowserTab(normalizedLink);
+
+  if (!opened) {
+    try {
+      opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!opened) {
+        opened = await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } on MissingPluginException {
+      opened = await openInBrowserTab(normalizedLink);
+    }
+  }
+
+  if (!opened && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Could not open website link on this device.'),
+      ),
+    );
+    return;
+  }
+
+  if (opportunityId.isNotEmpty) {
+    await DatabaseService().incrementOpportunityWebsiteVisits(opportunityId);
+  }
+}
+
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
   @override
@@ -30,7 +100,11 @@ class _StudentScreenState extends State<StudentScreen> {
   String _zip = '';
   DateTime? _dob;
   bool _loading = true;
+  // ScrollController (control scrollable widgets programmatically): https://www.geeksforgeeks.org/flutter/flutter-scrollcontroller/
+  final ScrollController _browseScrollController = ScrollController();
+  Map<String, dynamic>? _selectedEventData;
 
+  // Map (key-value pairs for filter state): https://www.geeksforgeeks.org/dart-programming-map/
   final Map<String, bool> _types = {
     'Club': false,
     'Event': false,
@@ -46,45 +120,64 @@ class _StudentScreenState extends State<StudentScreen> {
     'Physics': false,
   };
 
+  List<Map<String, dynamic>> _filterEvents(List<Map<String, dynamic>> all) {
+    return all.where((event) {
+      if (_age < (event['ageMin'] as num? ?? 0) ||
+          _age > (event['ageMax'] as num? ?? 99)) {
+        return false;
+      }
+      if (_types[event['type']] == false) return false;
+      if (_categories[event['category']] == false) return false;
+      return true;
+    }).toList();
+  }
 
+  String _formatUsDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$month/$day/${date.year}';
+  }
+
+  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
+  @override
+  void dispose() {
+    _browseScrollController.dispose();
+    super.dispose();
+  }
+
+  // initState (called once when the widget is first created): https://www.geeksforgeeks.org/flutter/flutter-initstate/
   @override
   void initState() {
     super.initState();
-    PreferencesService.setRestoreStudentOnLaunch(true);
     _loadPreferences();
-  }
-
-  @override
-  void dispose() {
-    _saveFilters();
-    PreferencesService.setRestoreStudentOnLaunch(false);
-    super.dispose();
   }
 
   Future<void> _loadPreferences() async {
     try {
-      final prefs = await PreferencesService.getAll();
-      if (prefs['setupDone'] == true) {
+      final savedPreferences = await PreferencesService.getAll();
+      if (savedPreferences['setupDone'] == true) {
         setState(() {
-          _age = prefs['age'];
-          _zip = prefs['zip'];
-          _dob = prefs['dob'];
-          final savedTypes = prefs['types'] as Map<String, bool>;
-          final savedCats = prefs['categories'] as Map<String, bool>;
+          _age = savedPreferences['age'];
+          _zip = savedPreferences['zip'];
+          _dob = savedPreferences['dob'];
+          final savedTypes = savedPreferences['types'] as Map<String, bool>;
+          final savedCategories =
+              savedPreferences['categories'] as Map<String, bool>;
           _types.updateAll((key, _) => savedTypes[key] ?? true);
-          _categories.updateAll((key, _) => savedCats[key] ?? true);
+          _categories.updateAll((key, _) => savedCategories[key] ?? true);
           _loading = false;
         });
       } else {
         setState(() => _loading = false);
         if (mounted) {
+          // Show onboarding setup after first frame so Scaffold context is ready.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _showWelcomePopup();
           });
         }
       }
-    } catch (e) {
-      debugPrint('Error loading preferences: $e');
+    } catch (error) {
+      debugPrint('Error loading preferences: $error');
       setState(() => _loading = false);
     }
   }
@@ -94,41 +187,17 @@ class _StudentScreenState extends State<StudentScreen> {
       await PreferencesService.saveAll(
         dob: _dob!,
         zip: _zip,
-        distance: 25,
         types: _types,
         categories: _categories,
       );
     }
   }
 
-  void _updateAgeAndPersist(double age) {
-    final now = DateTime.now();
-    final roundedAge = age.round();
-
-    setState(() {
-      _age = age;
-      // Keep DOB aligned with slider changes so future filtering is consistent.
-      _dob = DateTime(now.year - roundedAge, now.month, now.day);
-    });
-
-    _saveFilters();
-  }
-
-  void _updateTypeAndPersist(String type, bool value) {
-    setState(() => _types[type] = value);
-    _saveFilters();
-  }
-
-  void _updateCategoryAndPersist(String category, bool value) {
-    setState(() => _categories[category] = value);
-    _saveFilters();
-  }
-
+  // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
   void _showWelcomePopup() {
-    DateTime? tempDob;
-    final zipController = TextEditingController();
-    final tempTypes = Map<String, bool>.from(_types);
-    final tempCategories = Map<String, bool>.from(_categories);
+    DateTime? draftBirthDate;
+    final draftOpportunityTypes = Map<String, bool>.from(_types);
+    final draftCategories = Map<String, bool>.from(_categories);
 
     showModalBottomSheet(
       context: context,
@@ -137,16 +206,20 @@ class _StudentScreenState extends State<StudentScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        // StatefulBuilder (rebuild only the bottom sheet widget subtree): https://www.geeksforgeeks.org/flutter/flutter-statefulbuilder-widget/
         return StatefulBuilder(
           builder: (context, setModalState) {
+            // DraggableScrollableSheet (sheet that can be dragged to resize): https://www.geeksforgeeks.org/flutter/flutter-draggablescrollablesheet/
             return DraggableScrollableSheet(
               initialChildSize: 0.92,
               minChildSize: 0.92,
               maxChildSize: 0.95,
               builder: (_, scrollController) => Container(
                 decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(AppRadii.xl),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -156,7 +229,7 @@ class _StudentScreenState extends State<StudentScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: AppColors.border,
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(AppRadii.xs),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -195,6 +268,7 @@ class _StudentScreenState extends State<StudentScreen> {
                         children: [
                           const SizedBox(height: 16),
 
+                          // --- Date of Birth ---
                           const Text(
                             'Date of Birth',
                             style: TextStyle(
@@ -204,42 +278,141 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // showDatePicker (built-in calendar date picker): https://www.geeksforgeeks.org/flutter-date-picker-in-flutter/
                           InkWell(
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: context,
-                                initialDate: tempDob ?? DateTime(2010, 1, 1),
+                                initialDate:
+                                    draftBirthDate ?? DateTime(2010, 1, 1),
                                 firstDate: DateTime(1990),
                                 lastDate: DateTime.now(),
-                                helpText: 'SELECT YOUR DATE OF BIRTH',
-                                initialEntryMode: DatePickerEntryMode.calendarOnly,
+                                helpText: 'Select date of birth',
+                                initialEntryMode:
+                                    DatePickerEntryMode.calendarOnly,
+                                builder: (context, child) {
+                                  final baseTheme = Theme.of(context);
+                                  final screenWidth = MediaQuery.sizeOf(
+                                    context,
+                                  ).width;
+                                  final dialogWidth = (screenWidth - 16)
+                                      .clamp(320.0, 460.0)
+                                      .toDouble();
+                                  return Theme(
+                                    data: baseTheme.copyWith(
+                                      colorScheme: baseTheme.colorScheme
+                                          .copyWith(
+                                            primary: AppColors.title,
+                                            onPrimary: AppColors.onPrimary,
+                                            surface: AppColors.card,
+                                            onSurface: AppColors.title,
+                                          ),
+                                      datePickerTheme: DatePickerThemeData(
+                                        backgroundColor: AppColors.card,
+                                        surfaceTintColor: Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            AppRadii.lg,
+                                          ),
+                                        ),
+                                        headerBackgroundColor: AppColors.card,
+                                        headerForegroundColor: AppColors.title,
+                                        headerHelpStyle: const TextStyle(
+                                          color: AppColors.subtle,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        weekdayStyle: const TextStyle(
+                                          color: AppColors.subtle,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        dayStyle: const TextStyle(
+                                          color: AppColors.title,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        dayForegroundColor:
+                                            WidgetStateProperty.resolveWith<
+                                              Color?
+                                            >((states) {
+                                              if (states.contains(
+                                                WidgetState.selected,
+                                              )) {
+                                                return AppColors.onPrimary;
+                                              }
+                                              return AppColors.title;
+                                            }),
+                                        dayBackgroundColor:
+                                            WidgetStateProperty.resolveWith<
+                                              Color?
+                                            >((states) {
+                                              if (states.contains(
+                                                WidgetState.selected,
+                                              )) {
+                                                return AppColors.title;
+                                              }
+                                              return Colors.transparent;
+                                            }),
+                                        todayBorder: BorderSide(
+                                          color: AppColors.border,
+                                        ),
+                                        todayForegroundColor:
+                                            const WidgetStatePropertyAll(
+                                              AppColors.title,
+                                            ),
+                                        dividerColor: AppColors.border,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minWidth: dialogWidth,
+                                          maxWidth: dialogWidth,
+                                        ),
+                                        child: child ?? const SizedBox.shrink(),
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                               if (picked != null) {
-                                setModalState(() => tempDob = picked);
+                                setModalState(() => draftBirthDate = picked);
                               }
                             },
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadii.md),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 16),
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.background,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadii.md,
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.cake_outlined,
-                                      color: AppColors.subtle, size: 20),
+                                  const Icon(
+                                    Icons.cake_outlined,
+                                    color: AppColors.subtle,
+                                    size: 20,
+                                  ),
                                   const SizedBox(width: 12),
-                                  Text(
-                                    tempDob != null
-                                        ? '${tempDob!.month}/${tempDob!.day}/${tempDob!.year}'
-                                        : 'Tap to select your birthday',
-                                    style: TextStyle(
-                                      color: tempDob != null
-                                          ? AppColors.title
-                                          : AppColors.subtle,
-                                      fontSize: 15,
+                                  Expanded(
+                                    child: Text(
+                                      draftBirthDate != null
+                                          ? _formatUsDate(draftBirthDate!)
+                                          : 'Tap to select your birthday',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: draftBirthDate != null
+                                            ? AppColors.title
+                                            : AppColors.subtle,
+                                        fontSize: 15,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -248,30 +421,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          const Text(
-                            'Zip Code',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: AppColors.title,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: zipController,
-                            keyboardType: TextInputType.number,
-                            maxLength: 5,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            decoration: const InputDecoration(
-                              hintText: 'e.g. 01609',
-                              prefixIcon: Icon(Icons.location_on_outlined),
-                              counterText: '',
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
+                          // --- Interests ---
                           const Text(
                             'What are you interested in?',
                             style: TextStyle(
@@ -281,32 +431,38 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // Wrap (flow layout that wraps children): https://www.geeksforgeeks.org/wrap-widget-in-flutter/
+                          // FilterChip (toggleable chip for filters): https://www.geeksforgeeks.org/flutter-chips/
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: tempCategories.keys.map((cat) {
-                              final selected = tempCategories[cat]!;
+                            children: draftCategories.keys.map((category) {
+                              final isSelected = draftCategories[category]!;
                               return FilterChip(
-                                label: Text(cat),
-                                selected: selected,
-                                selectedColor:
-                                    AppColors.primary.withValues(alpha: 0.15),
+                                label: Text(category),
+                                selected: isSelected,
+                                selectedColor: AppColors.primary.withValues(
+                                  alpha: 0.15,
+                                ),
                                 checkmarkColor: AppColors.primary,
                                 labelStyle: TextStyle(
-                                  color: selected
+                                  color: isSelected
                                       ? AppColors.primary
                                       : AppColors.title,
-                                  fontWeight: selected
+                                  fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
                                 ),
-                                onSelected: (val) => setModalState(
-                                    () => tempCategories[cat] = val),
+                                onSelected: (isNowSelected) => setModalState(
+                                  () =>
+                                      draftCategories[category] = isNowSelected,
+                                ),
                               );
                             }).toList(),
                           ),
                           const SizedBox(height: 20),
 
+                          // --- Types ---
                           const Text(
                             'What type of opportunities?',
                             style: TextStyle(
@@ -319,24 +475,27 @@ class _StudentScreenState extends State<StudentScreen> {
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: tempTypes.keys.map((type) {
-                              final selected = tempTypes[type]!;
+                            children: draftOpportunityTypes.keys.map((type) {
+                              final isSelected = draftOpportunityTypes[type]!;
                               return FilterChip(
                                 label: Text(type),
-                                selected: selected,
-                                selectedColor:
-                                    AppColors.primary.withValues(alpha: 0.15),
+                                selected: isSelected,
+                                selectedColor: AppColors.primary.withValues(
+                                  alpha: 0.15,
+                                ),
                                 checkmarkColor: AppColors.primary,
                                 labelStyle: TextStyle(
-                                  color: selected
+                                  color: isSelected
                                       ? AppColors.primary
                                       : AppColors.title,
-                                  fontWeight: selected
+                                  fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
                                 ),
-                                onSelected: (val) =>
-                                    setModalState(() => tempTypes[type] = val),
+                                onSelected: (isNowSelected) => setModalState(
+                                  () => draftOpportunityTypes[type] =
+                                      isNowSelected,
+                                ),
                               );
                             }).toList(),
                           ),
@@ -345,6 +504,7 @@ class _StudentScreenState extends State<StudentScreen> {
                       ),
                     ),
 
+                    // --- Get Started button ---
                     SafeArea(
                       top: false,
                       child: Padding(
@@ -353,52 +513,52 @@ class _StudentScreenState extends State<StudentScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              if (tempDob == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('Please select your date of birth.'),
-                                  ),
-                                );
-                                return;
-                              }
-                              if (zipController.text.trim().length < 5) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('Please enter a valid 5-digit zip code.'),
-                                  ),
-                                );
-                                return;
-                              }
-                              if (!tempTypes.values.any((v) => v) ||
-                                  !tempCategories.values.any((v) => v)) {
+                              if (draftBirthDate == null) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                        'Select at least one interest and one type.'),
+                                      'Please select your date of birth.',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (!draftOpportunityTypes.values.any(
+                                    (value) => value,
+                                  ) ||
+                                  !draftCategories.values.any(
+                                    (value) => value,
+                                  )) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Select at least one interest and one type.',
+                                    ),
                                   ),
                                 );
                                 return;
                               }
 
-                              // Convert DOB to current age used by age-range filtering.
+                              // Calculate age from DOB
                               final now = DateTime.now();
-                              double age = (now.year - tempDob!.year).toDouble();
-                              if (now.month < tempDob!.month ||
-                                  (now.month == tempDob!.month &&
-                                      now.day < tempDob!.day)) {
-                                age -= 1;
+                              double calculatedAge =
+                                  (now.year - draftBirthDate!.year).toDouble();
+                              if (now.month < draftBirthDate!.month ||
+                                  (now.month == draftBirthDate!.month &&
+                                      now.day < draftBirthDate!.day)) {
+                                calculatedAge -= 1;
                               }
 
                               setState(() {
-                                _dob = tempDob;
-                                _zip = zipController.text.trim();
-                                _age = age.clamp(5, 24);
+                                _dob = draftBirthDate;
+                                _age = calculatedAge.clamp(5, 24);
                                 _types.updateAll(
-                                    (key, _) => tempTypes[key] ?? true);
+                                  (key, _) =>
+                                      draftOpportunityTypes[key] ?? true,
+                                );
                                 _categories.updateAll(
-                                    (key, _) => tempCategories[key] ?? true);
+                                  (key, _) => draftCategories[key] ?? true,
+                                );
                               });
 
                               _saveFilters();
@@ -407,7 +567,9 @@ class _StudentScreenState extends State<StudentScreen> {
                             child: const Text(
                               'Get Started',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -423,10 +585,11 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
-
-  void _showReportDialog(Map<String, dynamic> event) {
-    String? selectedReason;
-    final TextEditingController detailsController = TextEditingController();
+  // showModalBottomSheet for the report dialog: https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
+  void _showReportDialog(Map<String, dynamic> eventData) {
+    String? selectedReportReason;
+    final TextEditingController reportDetailsController =
+        TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -445,8 +608,8 @@ class _StudentScreenState extends State<StudentScreen> {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(AppRadii.xl),
                 ),
                 child: SingleChildScrollView(
                   child: Column(
@@ -463,7 +626,7 @@ class _StudentScreenState extends State<StudentScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        event['title'],
+                        eventData['title'],
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.subtle,
@@ -481,44 +644,52 @@ class _StudentScreenState extends State<StudentScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: [
-                          'Incorrect information',
-                          'Spam or scam',
-                          'Inappropriate content',
-                          'Duplicate listing',
-                          'Other',
-                        ].map(
-                          (reason) => ChoiceChip(
-                            label: Text(reason),
-                            selected: selectedReason == reason,
-                            selectedColor: AppColors.primary.withValues(alpha: 0.15),
-                            labelStyle: TextStyle(
-                              color: selectedReason == reason
-                                  ? AppColors.primary
-                                  : AppColors.title,
-                              fontWeight: selectedReason == reason
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                            onSelected: (_) {
-                              setModalState(() => selectedReason = reason);
-                            },
-                          ),
-                        ).toList(),
+                        children:
+                            [
+                                  'Incorrect information',
+                                  'Spam or scam',
+                                  'Inappropriate content',
+                                  'Duplicate listing',
+                                  'Other',
+                                ]
+                                .map(
+                                  (reason) => ChoiceChip(
+                                    label: Text(reason),
+                                    selected: selectedReportReason == reason,
+                                    selectedColor: AppColors.primary.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    labelStyle: TextStyle(
+                                      color: selectedReportReason == reason
+                                          ? AppColors.primary
+                                          : AppColors.title,
+                                      fontWeight: selectedReportReason == reason
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    ),
+                                    onSelected: (_) {
+                                      setModalState(
+                                        () => selectedReportReason = reason,
+                                      );
+                                    },
+                                  ),
+                                )
+                                .toList(),
                       ),
                       const SizedBox(height: 8),
                       TextField(
-                        controller: detailsController,
+                        controller: reportDetailsController,
                         maxLines: 3,
                         decoration: InputDecoration(
                           hintText: 'Add details (optional)',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadii.md),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: AppColors.primary),
+                            borderRadius: BorderRadius.circular(AppRadii.md),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -526,31 +697,21 @@ class _StudentScreenState extends State<StudentScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: selectedReason == null
+                          onPressed: selectedReportReason == null
                               ? null
                               : () {
-                                // TODO: Persist report data to backend for moderation workflow.
-
                                   Navigator.pop(context);
 
-                                  ScaffoldMessenger.of(this.context)
-                                      .showSnackBar(
+                                  ScaffoldMessenger.of(
+                                    this.context,
+                                  ).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        'Report submitted for "${event['title']}"',
+                                        'Report submitted for "${eventData['title']}"',
                                       ),
                                     ),
                                   );
                                 },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            disabledBackgroundColor: Colors.grey.shade300,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           child: const Text(
                             'Submit Report',
                             style: TextStyle(fontWeight: FontWeight.w600),
@@ -568,138 +729,286 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
-  void _showEventDetails(Map<String, dynamic> event) {
-    final description = (event['description'] as String?)?.trim().isNotEmpty == true
-        ? event['description'] as String
+  Widget _buildEventDetailsPanel(bool isDesktop) {
+    if (_selectedEventData == null) {
+      return Container(
+        height: isDesktop ? 260.0 : 200.0,
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.ink.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Text(
+            'Select an event to view details',
+            style: TextStyle(
+              color: AppColors.subtle,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final eventData = _selectedEventData!;
+    final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
+    final eventDescription =
+        (eventData['description'] as String?)?.trim().isNotEmpty == true
+        ? eventData['description'] as String
         : 'No description provided yet.';
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.55,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder: (_, scrollController) => Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
+    return Container(
+      height: isDesktop ? 260.0 : 320.0,
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.45),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.ink.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadii.panel),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 42,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE5E7EB),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          eventData['title'],
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.title,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          eventData['org'],
+                          style: const TextStyle(
+                            color: AppColors.subtle,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    event['title'],
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    event['org'],
-                    style: const TextStyle(
-                      color: AppColors.subtle,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      _Chip(label: event['category'], color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      _Chip(label: event['type'], color: const Color(0xFF00BFA5)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.title,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      color: AppColors.subtle,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today_outlined,
-                          size: 16, color: AppColors.subtle),
-                      const SizedBox(width: 6),
-                      Text(
-                        event['date'],
-                        style: const TextStyle(color: AppColors.subtle),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 16, color: AppColors.subtle),
-                      const SizedBox(width: 6),
-                      Text(
-                        event['location'],
-                        style: const TextStyle(color: AppColors.subtle),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.groups_outlined,
-                          size: 16, color: AppColors.subtle),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Ages ${event['ageMin']} - ${event['ageMax']}',
-                        style: const TextStyle(color: AppColors.subtle),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    color: AppColors.subtle,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => setState(() => _selectedEventData = null),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  _Chip(label: eventData['category'], color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  _Chip(
+                    label: eventData['type'],
+                    color: _typeAccentColor(eventData['type']),
+                    isTypeLabel: true,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Description',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.title,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                eventDescription,
+                style: const TextStyle(
+                  color: AppColors.subtle,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    eventData['date'],
+                    style: const TextStyle(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${eventData['location']}',
+                    style: const TextStyle(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.groups_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Ages ${eventData['ageMin']} - ${eventData['ageMax']}',
+                    style: const TextStyle(color: AppColors.subtle),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.language_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: organizationWebsite.isEmpty
+                            ? null
+                            : () => _openOrganizationWebsiteLink(
+                                context: context,
+                                opportunityId: eventData['id'] as String,
+                                websiteLink: organizationWebsite,
+                              ),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 28),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          alignment: Alignment.centerLeft,
+                        ),
+                        icon: const Icon(Icons.open_in_new, size: 14),
+                        label: Text(
+                          organizationWebsite.isEmpty
+                              ? 'No organization website provided'
+                              : 'Visit organization website',
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
+  int _gridColumnsForWidth(double width) {
+    if (width >= _browseDesktopBreakpoint) return 3;
+    if (width >= _browseTabletBreakpoint) return 2;
+    return 1;
+  }
+
+  Widget _buildBrowseOverview(
+    bool isDesktop,
+    List<Map<String, dynamic>> filteredEvents,
+  ) {
+    final heading = Text(
+      'Discover STEM\nopportunities near you',
+      style: Theme.of(
+        context,
+      ).textTheme.headlineMedium?.copyWith(fontSize: isDesktop ? 44 : 34),
+    );
+
+    final description = Text(
+      'Navigate opportunities and events near you by scrolling the list, refining filters, and opening each card for details.',
+      style: TextStyle(
+        color: AppColors.subtle,
+        fontSize: isDesktop ? 18 : 16,
+        height: 1.45,
+      ),
+    );
+
+    if (isDesktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [heading, const SizedBox(height: 22), description],
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(child: _buildEventDetailsPanel(isDesktop)),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        heading,
+        const SizedBox(height: 16),
+        description,
+        const SizedBox(height: 18),
+        _buildEventDetailsPanel(isDesktop),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
       drawerEdgeDragWidth: 0,
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.navBar,
+        foregroundColor: AppColors.ink,
         elevation: 0,
         title: const Text(
           'Beacon',
@@ -721,8 +1030,10 @@ class _StudentScreenState extends State<StudentScreen> {
         ],
       ),
 
-
+      // Drawer (side panel navigation): https://www.geeksforgeeks.org/flutter-drawer-widget/
       endDrawer: Drawer(
+        backgroundColor: AppColors.card,
+        surfaceTintColor: Colors.transparent,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -762,22 +1073,23 @@ class _StudentScreenState extends State<StudentScreen> {
                           min: 5,
                           max: 24,
                           divisions: 19,
-                          activeColor: AppColors.primary,
-                          onChanged: _updateAgeAndPersist,
+                          activeColor: AppColors.title,
+                          inactiveColor: AppColors.border,
+                          onChanged: (value) => setState(() => _age = value),
                         ),
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Type'),
                         const SizedBox(height: 4),
+                        // CheckboxListTile (checkbox with label): https://www.geeksforgeeks.org/flutter-checkboxlisttile/
                         ..._types.keys.map(
                           (type) => CheckboxListTile(
                             title: Text(type),
                             value: _types[type],
-                            activeColor: AppColors.primary,
+                            activeColor: AppColors.title,
+                            checkColor: AppColors.onPrimary,
                             contentPadding: EdgeInsets.zero,
-                            onChanged: (val) {
-                              if (val == null) return;
-                              _updateTypeAndPersist(type, val);
-                            },
+                            onChanged: (isChecked) =>
+                                setState(() => _types[type] = isChecked!),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -787,12 +1099,11 @@ class _StudentScreenState extends State<StudentScreen> {
                           (cat) => CheckboxListTile(
                             title: Text(cat),
                             value: _categories[cat],
-                            activeColor: AppColors.primary,
+                            activeColor: AppColors.title,
+                            checkColor: AppColors.onPrimary,
                             contentPadding: EdgeInsets.zero,
-                            onChanged: (val) {
-                              if (val == null) return;
-                              _updateCategoryAndPersist(cat, val);
-                            },
+                            onChanged: (isChecked) =>
+                                setState(() => _categories[cat] = isChecked!),
                           ),
                         ),
                       ],
@@ -806,43 +1117,87 @@ class _StudentScreenState extends State<StudentScreen> {
       ),
 
       body: _loading
-      ? const Center(child: CircularProgressIndicator())
-      : StreamBuilder<List<Map<String, dynamic>>>(
-          stream: DatabaseService().getOpportunities(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          ? const Center(child: CircularProgressIndicator())
+          // LayoutBuilder (responsive layout using constraints): https://www.geeksforgeeks.org/flutter/flutter-layoutbuilder-widget/
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final isDesktop = width >= _browseDesktopBreakpoint;
+                final columns = _gridColumnsForWidth(width);
+                final horizontalPadding = isDesktop ? 56.0 : 20.0;
+                final columnGap = 16.0;
+                final availableWidth = width - (horizontalPadding * 2);
+                final columnWidth =
+                  (availableWidth - (columnGap * (columns - 1))) / columns;
 
-            List<Map<String, dynamic>> events = snapshot.data!;
-
-            final filtered = events.where((event) {
-              if (_age < event['ageMin'] || _age > event['ageMax']) return false;
-              if (_types[event['type']] == false) return false;
-              if (_categories[event['category']] == false) return false;
-              return true;
-            }).toList();
-
-            if (filtered.isEmpty) {
-              return const Center(
-                child: Text(
-                  'No opportunities match your filters.',
-                  style: TextStyle(color: AppColors.subtle, fontSize: 16),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filtered.length,
-              itemBuilder: (context, index) => _EventCard(
-                event: filtered[index],
-                onViewDetails: () => _showEventDetails(filtered[index]),
-                onReport: () => _showReportDialog(filtered[index]),
-              ),
-            );
-          },
-        ),
+                // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter-singlechildscrollview-widget-in-flutter/
+                return SingleChildScrollView(
+                  controller: _browseScrollController,
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    24,
+                    horizontalPadding,
+                    28,
+                  ),
+                // StreamBuilder (rebuild UI on real-time Firestore stream): https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: DatabaseService().getOpportunities(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final filteredEvents = _filterEvents(snapshot.data!);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildBrowseOverview(isDesktop, filteredEvents),
+                          const SizedBox(height: 18),
+                          const Divider(height: 1),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Browse local STEM events',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontSize: isDesktop ? 34 : 30),
+                          ),
+                          const SizedBox(height: 10),
+                          if (filteredEvents.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 40),
+                              child: Center(
+                                child: Text(
+                                  'No opportunities match your filters.',
+                                  style: TextStyle(
+                                    color: AppColors.subtle,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            Wrap(
+                              spacing: columnGap,
+                              runSpacing: 16,
+                              children: filteredEvents.map((eventData) {
+                                return SizedBox(
+                                  width: columnWidth,
+                                  child: _EventCard(
+                                    eventData: eventData,
+                                    onViewDetails: () => setState(
+                                      () => _selectedEventData = eventData,
+                                    ),
+                                    onReport: () =>
+                                        _showReportDialog(eventData),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
     );
   }
 }
@@ -871,163 +1226,212 @@ class _FilterLabel extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _SectionTitle(title: title),
-        Text(value, style: const TextStyle(color: AppColors.primary)),
+        Text(value, style: const TextStyle(color: AppColors.subtle)),
       ],
     );
   }
 }
 
 class _EventCard extends StatelessWidget {
-  final Map<String, dynamic> event;
+  final Map<String, dynamic> eventData;
   final VoidCallback onViewDetails;
   final VoidCallback onReport;
 
   const _EventCard({
-    required this.event,
+    required this.eventData,
     required this.onViewDetails,
     required this.onReport,
   });
 
   @override
+  // Material + InkWell (tappable card with ripple effect): https://www.geeksforgeeks.org/inkwell-widget-in-flutter/
   Widget build(BuildContext context) {
-    final link = (event['link'] as String?)?.trim() ?? '';
-
-    Future<void> openWebsite() async {
-      if (link.isEmpty) return;
-      final normalizedLink = link.startsWith('http://') || link.startsWith('https://')
-          ? link
-          : 'https://$link';
-      final uri = Uri.tryParse(normalizedLink);
-      if (uri == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid website link for this event.')),
-        );
-        return;
-      }
-
-      var opened = await openInBrowserTab(normalizedLink);
-
-      if (!opened) {
-        try {
-          // Non-web platforms use url_launcher when dart:html is unavailable.
-          opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-          if (!opened) {
-            opened = await launchUrl(uri, mode: LaunchMode.platformDefault);
-          }
-        } on MissingPluginException {
-          // In constrained builds, retry using the conditional web opener.
-          opened = await openInBrowserTab(normalizedLink);
-        }
-      }
-
-      if (!opened && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open website link on this device.')),
-        );
-      }
-    }
-
-    return InkWell(
-      onTap: onViewDetails,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+    final type = (eventData['type'] as String?) ?? 'Event';
+    final category =
+        (eventData['category'] as String?)?.trim().isNotEmpty == true
+        ? eventData['category'] as String
+        : 'General';
+    final typeColor = _typeAccentColor(type);
+    final typeTint = _typeTintColor(type);
+    final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
+    // Material (provides ink splash and elevation): https://www.geeksforgeeks.org/flutter/flutter-material-widget/
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadii.lg),
+      child: InkWell(
+        onTap: onViewDetails,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadii.lg),
+            border: Border.all(
+              color: AppColors.border.withValues(alpha: 0.7),
+              width: 1,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                _Chip(label: event['category'], color: AppColors.primary),
-                const SizedBox(width: 8),
-                _Chip(label: event['type'], color: const Color(0xFF00BFA5)),
-                const Spacer(),
-                IconButton(
-                  onPressed: onReport,
-                  icon: const Icon(
-                    Icons.flag_outlined,
-                    color: Colors.redAccent,
-                  ),
-                  tooltip: 'Report event',
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              event['title'],
-              style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: AppColors.title,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.ink.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              event['org'],
-              style: const TextStyle(fontSize: 14, color: AppColors.subtle),
-            ),
-            const SizedBox(height: 10),
-            const Divider(height: 1),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on_outlined,
-                  size: 15,
-                  color: AppColors.subtle,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  event['location'],
-                  style: const TextStyle(fontSize: 13, color: AppColors.subtle),
-                ),
-                const Spacer(),
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 13,
-                  color: AppColors.subtle,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  event['date'],
-                  style: const TextStyle(fontSize: 13, color: AppColors.subtle),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Tap for details',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: link.isEmpty ? null : openWebsite,
-                icon: const Icon(Icons.open_in_new, size: 16),
-                label: const Text('Visit Organization Website'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  padding: EdgeInsets.zero,
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _Chip(
+                            label: type,
+                            color: typeColor,
+                            isTypeLabel: true,
+                          ),
+                          _Chip(
+                            label: category,
+                            color: AppColors.primary,
+                            isTypeLabel: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onReport,
+                      icon: const Icon(
+                        Icons.flag_outlined,
+                        color: AppColors.subtle,
+                        size: 18,
+                      ),
+                      splashRadius: 18,
+                      tooltip: 'Report event',
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 6, 10, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: typeTint,
+                        borderRadius: BorderRadius.circular(AppRadii.sm),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: typeColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '${eventData['location']}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: typeColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      eventData['title'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.title,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      eventData['org'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.subtle,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 13,
+                          color: AppColors.subtle,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            eventData['date'],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.subtle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Text(
+                          'Tap for details',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (organizationWebsite.isNotEmpty)
+                          TextButton.icon(
+                            onPressed: () => _openOrganizationWebsiteLink(
+                              context: context,
+                              opportunityId: eventData['id'] as String,
+                              websiteLink: organizationWebsite,
+                            ),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 24),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            icon: const Icon(Icons.open_in_new, size: 13),
+                            label: const Text(
+                              'Website',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1037,15 +1441,24 @@ class _EventCard extends StatelessWidget {
 class _Chip extends StatelessWidget {
   final String label;
   final Color color;
-  const _Chip({required this.label, required this.color});
+  final bool isTypeLabel;
+
+  const _Chip({
+    required this.label,
+    required this.color,
+    this.isTypeLabel = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        color: isTypeLabel ? AppColors.card : color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadii.xl),
+        border: isTypeLabel
+            ? Border.all(color: color.withValues(alpha: 0.55))
+            : null,
       ),
       child: Text(
         label,

@@ -20,10 +20,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Simple wrapper around SharedPreferences for student settings.
 /// Works on web (localStorage), Android (SharedPreferences), iOS (NSUserDefaults).
+// Static class / utility class pattern in Dart: https://www.geeksforgeeks.org/dart-classes-and-objects/
 class PreferencesService {
   static const _keyDob = 'student_dob';
   static const _keyZip = 'student_zip';
-  static const _keyDistance = 'student_distance';
   static const _keyTypes = 'student_types';
   static const _keyCategories = 'student_categories';
   static const _keySetupComplete = 'student_setup_complete';
@@ -32,6 +32,7 @@ class PreferencesService {
 
   static SharedPreferences? _prefs;
 
+  // Null-aware assignment operator (??=): https://www.geeksforgeeks.org/operators-in-dart/
   static Future<SharedPreferences> get _instance async {
     _prefs ??= await SharedPreferences.getInstance();
     return _prefs!;
@@ -107,18 +108,6 @@ class PreferencesService {
     return prefs.getString(_keyZip) ?? '';
   }
 
-  // Distance
-
-  static Future<void> saveDistance(double distance) async {
-    final prefs = await _instance;
-    await prefs.setDouble(_keyDistance, distance);
-  }
-
-  static Future<double> getDistance() async {
-    final prefs = await _instance;
-    return prefs.getDouble(_keyDistance) ?? 25;
-  }
-
   // --- Types (Club, Event, Volunteering) ---
 
   static Future<void> saveEnabledTypes(Map<String, bool> types) async {
@@ -134,6 +123,7 @@ class PreferencesService {
     final prefs = await _instance;
     final all = ['Club', 'Event', 'Volunteering'];
     final saved = prefs.getStringList(_keyTypes);
+    // Collection-if and spread operators in Dart: https://www.geeksforgeeks.org/dart-collection-if-and-collection-for/
     if (saved == null) return {for (var t in all) t: false};
     return {for (var t in all) t: saved.contains(t)};
   }
@@ -171,7 +161,6 @@ class PreferencesService {
       'setupDone': true,
       'dob': dob,
       'age': calculateAge(dob),
-      'distance': await getDistance(),
       'zip': await getZip(),
       'types': await getEnabledTypes(),
       'categories': await getEnabledCategories(),
@@ -183,21 +172,19 @@ class PreferencesService {
   static Future<void> saveAll({
     required DateTime dob,
     required String zip,
-    required double distance,
     required Map<String, bool> types,
     required Map<String, bool> categories,
   }) async {
     final prefs = await _instance;
     await prefs.setString(_keyDob, dob.toIso8601String());
     await prefs.setString(_keyZip, zip);
-    await prefs.setDouble(_keyDistance, distance);
-    
+
     final enabledTypes = types.entries.where((e) => e.value).map((e) => e.key).toList();
     await prefs.setStringList(_keyTypes, enabledTypes);
-    
+
     final enabledCats = categories.entries.where((e) => e.value).map((e) => e.key).toList();
     await prefs.setStringList(_keyCategories, enabledCats);
-    
+
     await prefs.setBool(_keySetupComplete, true);
   }
 }
