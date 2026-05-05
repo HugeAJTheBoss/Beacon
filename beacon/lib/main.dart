@@ -497,7 +497,11 @@ class _HeroGraphicCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // Image.asset (load local images): https://www.geeksforgeeks.org/flutter/flutter-image-widget/
-            Image.asset(AppAssets.beaconLogo, fit: BoxFit.cover, filterQuality: FilterQuality.high),
+            Image.asset(
+              AppAssets.stemLogoPlaceholder,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
             DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
