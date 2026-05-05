@@ -31,6 +31,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   final _einController = TextEditingController();
   final _descriptionController = TextEditingController();
 
+  // bool state variables: https://www.geeksforgeeks.org/dart/dart-data-types/
   bool _passwordVisible = false;
   bool _isLoading = false;
 
@@ -56,6 +57,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     super.dispose();
   }
 
+  // async/await for asynchronous operations: https://www.geeksforgeeks.org/using-await-async-in-dart/
   void _submitForm() async {
     // _formKey.currentState!.validate() - runs all validator functions in the Form
     // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
@@ -133,6 +135,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   /// Builds a standard form text field with bottom spacing.
   // Reusable TextFormField wrapper to avoid repeating decoration boilerplate (DRY principle)
   // Source: https://dart.dev/effective-dart/design
+  // TextFormField (validated form text input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
   Widget _field({
     required TextEditingController controller,
     required String label,

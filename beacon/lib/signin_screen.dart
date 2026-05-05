@@ -14,6 +14,7 @@ import 'org_register_choice_screen.dart';
 import 'org_dashboard_screen.dart';
 import 'services/auth_service.dart';
 
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -22,13 +23,17 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  // GlobalKey<FormState> (identify and validate a Form): https://www.geeksforgeeks.org/flutter-form-validation/
   final _formKey = GlobalKey<FormState>();
+  // TextEditingController (read and control TextField input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // bool state variables to track UI state: https://www.geeksforgeeks.org/dart/dart-data-types/
   bool _passwordVisible = false;
   bool _isLoading = false;
 
+  // showDialog / AlertDialog (modal dialog for status messages): https://www.geeksforgeeks.org/flutter/flutter-alertdialog-widget/
   // showDialog - displays a Material dialog above the current screen
   // Tutorial: https://www.geeksforgeeks.org/flutter-alertdialog-widget/
   Future<void> _showStatusDialog({
@@ -87,19 +92,19 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
+  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
-    // Controllers must be disposed to free memory when the widget is removed
-    // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  // async/await and try-catch for error handling: https://www.geeksforgeeks.org/using-await-async-in-dart/
   void _signIn() async {
-    // _formKey.currentState!.validate() - runs all validator functions in the Form
-    // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
+    // Form validation: https://www.geeksforgeeks.org/flutter-form-validation/
     if (!_formKey.currentState!.validate()) return;
+    // setState (trigger UI rebuild): https://www.geeksforgeeks.org/flutter/flutter-state-management/
     setState(() => _isLoading = true);
 
     try {
@@ -109,11 +114,10 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       setState(() => _isLoading = false);
-      if (!mounted) return; // prevents acting on a disposed widget
+      if (!mounted) return;
 
       if (user != null) {
-        // Navigator.pushReplacement - replaces the current route so the user can't go back
-        // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/pushReplacement.html
+        // Navigator.pushReplacement (replace current route): https://www.geeksforgeeks.org/routes-and-navigator-in-flutter/
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
@@ -154,27 +158,24 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
-    // Tutorial: https://www.geeksforgeeks.org/flutter-scaffold-widget/
+    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
+      // AppBar (top navigation bar): https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
       appBar: AppBar(
         title: const Text(
           'Sign in',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
-      // SafeArea - prevents content from being hidden behind notches or system UI
-      // Source: https://api.flutter.dev/flutter/widgets/SafeArea-class.html
+      // SafeArea (avoid system UI intrusions): https://www.geeksforgeeks.org/flutter/flutter-safearea-widget/
       body: SafeArea(
         child: Center(
+          // ConstrainedBox (limit widget dimensions): https://www.geeksforgeeks.org/flutter/constrainedbox-widget-in-flutter/
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            // SingleChildScrollView - makes the form scrollable when the keyboard is open
-            // Tutorial: https://www.geeksforgeeks.org/flutter-single-child-scroll-view/
+            // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              // Form - groups TextFormFields and manages validation together
-              // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
               child: Form(
                 key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -184,14 +185,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     // Logo
                     Align(
                       alignment: Alignment.center,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppRadii.md),
-                        child: Image.asset(
-                          AppAssets.stemLogoPlaceholder,
-                          width: 180,
-                          height: 110,
-                          fit: BoxFit.cover,
-                        ),
+                      child: Image.asset(
+                        AppAssets.beaconLogo,
+                        width: 160,
+                        height: 100,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -210,161 +208,97 @@ class _SignInScreenState extends State<SignInScreen> {
                         height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: AppSpacing.xl),
 
-                    // Form card
-                    // Container with BoxDecoration - rounded corners and a soft drop shadow
-                    // Tutorial: https://www.geeksforgeeks.org/flutter-container-widget/
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(AppRadii.lg),
-                        border: Border.all(color: AppColors.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.ink.withValues(alpha: 0.05),
-                            blurRadius: 12,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                    // Email field
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        hintText: 'contact@yourorg.org',
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Email field
-                          // TextFormField - a text input that integrates with Form validation
-                          // Tutorial: https://www.geeksforgeeks.org/flutter-textformfield/
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                            child: TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [
-                                AutofillHints.username,
-                                AutofillHints.email,
-                              ],
-                              decoration: const InputDecoration(
-                                labelText: 'Email',
-                                hintText: 'you@example.com',
-                              ),
-                              validator: _validateEmail,
-                            ),
-                          ),
-
-                          // Password field
-                          // obscureText - hides password characters
-                          // Tutorial: https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: TextFormField(
-                              controller: _passwordController,
-                              obscureText: !_passwordVisible, // toggles password visibility
-                              textInputAction: TextInputAction.done,
-                              autofillHints: const [AutofillHints.password],
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                // suffixIcon with IconButton - tapping the eye icon toggles visibility
-                                // Source: https://api.flutter.dev/flutter/material/IconButton-class.html
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _passwordVisible
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: AppColors.subtle,
-                                  ),
-                                  onPressed: () => setState(
-                                    () => _passwordVisible = !_passwordVisible,
-                                  ),
-                                ),
-                              ),
-                              validator: _validatePassword,
-                            ),
-                          ),
-
-                          // Forgot password
-                          // TextButton - flat button used for low-emphasis actions
-                          // Tutorial: https://www.geeksforgeeks.org/flutter-textbutton-widget/
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {}, // TODO: forgot password flow
-                              child: const Text(
-                                'Forgot password?',
-                                style: TextStyle(
-                                  color: AppColors.subtle,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-
-                          // Sign in button
-                          // ElevatedButton - filled button for primary actions
-                          // Tutorial: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _signIn,
-                            // CircularProgressIndicator - spinner shown while the async sign-in runs
-                            // Tutorial: https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.onPrimary,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Sign in'),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Register link
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Need an account? ',
-                                style: TextStyle(
-                                  color: AppColors.subtle,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              TextButton(
-                                // Navigator.push - pushes a new route onto the navigation stack
-                                // Tutorial: https://www.geeksforgeeks.org/flutter-navigator/
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const OrgRegisterChoiceScreen(),
-                                  ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'Register organization',
-                                  style: TextStyle(
-                                    color: AppColors.title,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                        ],
-                      ),
+                      validator: _validateEmail,
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
+
+                    // Password field with visibility toggle
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: !_passwordVisible,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _passwordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: AppColors.subtle,
+                          ),
+                          onPressed: () => setState(
+                            () => _passwordVisible = !_passwordVisible,
+                          ),
+                        ),
+                      ),
+                      validator: _validatePassword,
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+
+                    // Sign in button
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _signIn,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: AppColors.onPrimary,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Sign In'),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+
+                    // Sign up link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Don\'t have an account? ',
+                          style: TextStyle(
+                            color: AppColors.subtle,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const OrgRegisterChoiceScreen(),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              color: AppColors.title,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

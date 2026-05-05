@@ -42,6 +42,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   // getter that returns a color based on the event's status string
   // Source: https://dart.dev/language/functions#getters-and-setters
   Color _statusColorForFilter(String status) {
+    // switch statement in Dart: https://www.geeksforgeeks.org/switch-case-in-dart/
     // switch statement - selects a branch based on the value of a variable
     // Source: https://dart.dev/language/branches#switch-statements
     switch (status) {
@@ -57,11 +58,14 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }
 
   void _deleteEvent(Map<String, dynamic> eventData) {
+    // showDialog (display a modal dialog over the UI): https://www.geeksforgeeks.org/flutter/flutter-dialogs/
     // showDialog - displays a Material dialog above the current screen
     // Tutorial: https://www.geeksforgeeks.org/flutter-alertdialog-widget/
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) =>
+        // AlertDialog (standard dialog with title, content, actions): https://www.geeksforgeeks.org/alert-dialog-box-in-flutter/
+        AlertDialog(
         // RoundedRectangleBorder - gives the dialog rounded corners
         // Source: https://api.flutter.dev/flutter/painting/RoundedRectangleBorder-class.html
         shape: RoundedRectangleBorder(
@@ -150,6 +154,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }
 
   void _openAddEventSheet() {
+    // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
     // showModalBottomSheet - slides a panel up from the bottom of the screen
     // Tutorial: https://www.geeksforgeeks.org/flutter-modalBottomSheet/
     showModalBottomSheet(
@@ -236,12 +241,14 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final isSelected = status == _activeStatusFilter;
           final statusColor = _statusColorForFilter(status);
 
+          // AnimatedScale (animate scale of a child widget): https://www.geeksforgeeks.org/flutter/flutter-animatedscale-widget/
           // AnimatedScale - smoothly scales its child between values
           // Source: https://api.flutter.dev/flutter/widgets/AnimatedScale-class.html
           return AnimatedScale(
             scale: isSelected ? 1 : 0.97,
             duration: _microDuration,
             curve: Curves.easeOutCubic,
+            // ChoiceChip (single-select chip): https://www.geeksforgeeks.org/flutter-chips/
             // ChoiceChip - chip widget that holds a single boolean selected state
             // Tutorial: https://www.geeksforgeeks.org/chip-widgets-in-flutter/
             child: ChoiceChip(
@@ -294,6 +301,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       );
     }
 
+    // ListView.builder (efficient lazily built list): https://www.geeksforgeeks.org/flutter-listview/
     // ListView.builder - efficiently builds list items on demand
     // Tutorial: https://www.geeksforgeeks.org/flutter-listview-builder/
     return ListView.builder(
@@ -321,6 +329,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     required int draft,
     required int websiteVisits,
   }) {
+    // LayoutBuilder (rebuild when constraints change): https://www.geeksforgeeks.org/flutter/flutter-layoutbuilder-widget/
     // LayoutBuilder - rebuilds based on the parent's constraints (used for responsive layouts)
     // Source: https://api.flutter.dev/flutter/widgets/LayoutBuilder-class.html
     return LayoutBuilder(
@@ -424,7 +433,9 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
+      // FloatingActionButton (primary action FAB): https://www.geeksforgeeks.org/flutter-floatingactionbutton/
       floatingActionButton: _buildFab(),
+      // StreamBuilder (rebuild UI on real-time stream updates): https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
       // StreamBuilder - rebuilds whenever new data arrives from a Stream
       // Tutorial: https://www.geeksforgeeks.org/flutter-streambuilder-widget/
       body: StreamBuilder<List<Map<String, dynamic>>>(
@@ -454,6 +465,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
                 websiteVisits: websiteVisits,
               ),
               Expanded(
+                // AnimatedSwitcher (animate between two different child widgets): https://www.geeksforgeeks.org/flutter-animatedswitcher-widget/
                 // AnimatedSwitcher - smoothly transitions between widgets when its child changes
                 // Source: https://api.flutter.dev/flutter/widgets/AnimatedSwitcher-class.html
                 child: AnimatedSwitcher(
@@ -977,6 +989,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                 child: SingleChildScrollView(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                  // Form widget with validation: https://www.geeksforgeeks.org/flutter-form-validation/
                   // Form - groups TextFormFields and manages validation together
                   // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
                   child: Form(
@@ -1006,6 +1019,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                         ),
 
                         const _FormSectionHeader('Classification'),
+                        // DropdownButtonFormField (form-integrated dropdown selector): https://www.geeksforgeeks.org/flutter/flutter-dropdownbutton-widget/
                         // DropdownButtonFormField - a dropdown that integrates with Form validation
                         // Tutorial: https://www.geeksforgeeks.org/dropdownbuttonformfield-in-flutter/
                         _DropdownField(
@@ -1070,6 +1084,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        // Slider (select a value from a range): https://www.geeksforgeeks.org/flutter/flutter-slider-widget/
                         // Slider - lets the user pick a value by dragging
                         // Tutorial: https://www.geeksforgeeks.org/flutter-slider-widget/
                         Row(

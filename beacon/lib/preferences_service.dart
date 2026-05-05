@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Simple wrapper around SharedPreferences for student settings.
 /// Works on web (localStorage), Android (SharedPreferences), iOS (NSUserDefaults).
+// Static class / utility class pattern in Dart: https://www.geeksforgeeks.org/dart-classes-and-objects/
 class PreferencesService {
   static const _keyDob = 'student_dob';
   static const _keyZip = 'student_zip';
@@ -31,6 +32,7 @@ class PreferencesService {
 
   static SharedPreferences? _prefs;
 
+  // Null-aware assignment operator (??=): https://www.geeksforgeeks.org/operators-in-dart/
   static Future<SharedPreferences> get _instance async {
     _prefs ??= await SharedPreferences.getInstance();
     return _prefs!;
@@ -121,6 +123,7 @@ class PreferencesService {
     final prefs = await _instance;
     final all = ['Club', 'Event', 'Volunteering'];
     final saved = prefs.getStringList(_keyTypes);
+    // Collection-if and spread operators in Dart: https://www.geeksforgeeks.org/dart-collection-if-and-collection-for/
     if (saved == null) return {for (var t in all) t: false};
     return {for (var t in all) t: saved.contains(t)};
   }
