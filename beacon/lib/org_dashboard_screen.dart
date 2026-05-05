@@ -842,7 +842,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   String _status = 'Upcoming';
   int _ageMin = 10;
   int _ageMax = 24;
-  String _optionalImagePath = '';
+  
 
   final List<String> _categories = [
     'Robotics',
@@ -880,11 +880,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     _status = existingEventData['status'] ?? 'Upcoming';
     _ageMin = existingEventData['ageMin'] ?? 10;
     _ageMax = existingEventData['ageMax'] ?? 24;
-    _optionalImagePath = existingEventData['imageUrl'] ?? '';
-  }
-
-  void _handleOptionalImageTap() {
-    // image upload needs to be implemented.
   }
 
   @override
@@ -920,7 +915,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
       // Source: https://api.dart.dev/dart-core/int/tryParse.html
       'capacity': int.tryParse(_capacityController.text.trim()) ?? 0,
       'link': _linkController.text.trim(),
-      'imageUrl': _optionalImagePath,
       'status': _status,
     });
     Navigator.pop(context);
@@ -1172,29 +1166,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                             return null;
                           },
                         ),
-
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Optional Image',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: AppColors.title,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // OutlinedButton.icon - outlined button with a leading icon
-                        // Tutorial: https://www.geeksforgeeks.org/flutter-outlinedbutton-widget/
-                        OutlinedButton.icon(
-                          onPressed: _handleOptionalImageTap,
-                          icon: const Icon(Icons.add_photo_alternate_outlined),
-                          label: Text(
-                            _optionalImagePath.isEmpty
-                                ? 'Add Optional Image'
-                                : 'Image Added',
-                          ),
-                        ),
-                        const SizedBox(height: 6),
 
                         const SizedBox(height: 8),
 
