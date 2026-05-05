@@ -319,6 +319,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     required int total,
     required int upcoming,
     required int draft,
+    required int websiteVisits,
   }) {
     // LayoutBuilder - rebuilds based on the parent's constraints (used for responsive layouts)
     // Source: https://api.flutter.dev/flutter/widgets/LayoutBuilder-class.html
@@ -335,6 +336,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
               SizedBox(width: compactCardWidth, child: _MetricCard(label: 'Total Events', value: '$total')),
               SizedBox(width: compactCardWidth, child: _MetricCard(label: 'Upcoming', value: '$upcoming')),
               SizedBox(width: compactCardWidth, child: _MetricCard(label: 'Draft', value: '$draft')),
+              SizedBox(width: compactCardWidth, child: _MetricCard(label: 'Website Visits', value: '$websiteVisits')),
             ],
           );
         }
@@ -345,6 +347,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
             Expanded(child: _MetricCard(label: 'Upcoming', value: '$upcoming')),
             const SizedBox(width: 8),
             Expanded(child: _MetricCard(label: 'Draft', value: '$draft')),
+            const SizedBox(width: 8),
+            Expanded(child: _MetricCard(label: 'Website Visits', value: '$websiteVisits')),
           ],
         );
       },
@@ -378,7 +382,15 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         ),
         child: Column(
           children: [
-            _buildMetricsSectionWithData(total: total, upcoming: upcoming, draft: draft),
+            _buildMetricsSectionWithData(
+              total: total,
+              upcoming: upcoming,
+              draft: draft,
+              websiteVisits: allEvents.fold<int>(
+                0,
+                (sum, event) => sum + ((event['websiteVisits'] as num?)?.toInt() ?? 0),
+              ),
+            ),
             const SizedBox(height: _sectionSpacing),
             _buildStatusFilterChips(),
           ],

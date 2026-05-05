@@ -15,6 +15,7 @@ class DatabaseService {
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data();
+    final websiteVisits = data['websiteVisits'] ?? 0;
 
     // doc.id - the unique document ID auto-assigned by Firestore
     // ?? operator provides a default value if the field is null (Dart null safety)
@@ -32,7 +33,7 @@ class DatabaseService {
       'ageMin': data['ageMin'] ?? 0,
       'ageMax': data['ageMax'] ?? 99,
       'status': 'Upcoming',
-      'websiteVisits': 0,
+      'websiteVisits': websiteVisits,
     };
   }
 
@@ -64,9 +65,16 @@ class DatabaseService {
         'ageMin': ageMin,
         'ageMax': ageMax,
         'orgId': orgId,
+        'websiteVisits': 0,
         'createdAt': FieldValue.serverTimestamp(),
     });
     }
+
+  Future<void> incrementOpportunityWebsiteVisits(String id) async {
+    await _db.collection('opportunities').doc(id).update({
+      'websiteVisits': FieldValue.increment(1),
+    });
+  }
   // .delete() removes a Firestore document by its ID
   // Tutorial: https://dev.to/tjgrapes/cloud-firestore-basics-in-flutter-how-to-get-add-edit-and-delete-data-in-cloud-firestore-demonstrated-in-a-real-flutter-app-2d06
   Future<void> deleteOpportunity(String id) async {

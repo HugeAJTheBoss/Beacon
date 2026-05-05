@@ -56,6 +56,7 @@ String _resolveEventImageAsset(Map<String, dynamic> eventData) {
 
 Future<void> _openOrganizationWebsiteLink({
   required BuildContext context,
+  required String opportunityId,
   required String websiteLink,
 }) async {
   if (websiteLink.isEmpty) return;
@@ -91,6 +92,11 @@ Future<void> _openOrganizationWebsiteLink({
         content: Text('Could not open website link on this device.'),
       ),
     );
+    return;
+  }
+
+  if (opened && opportunityId.isNotEmpty) {
+    await DatabaseService().incrementOpportunityWebsiteVisits(opportunityId);
   }
 }
 
@@ -918,8 +924,9 @@ class _StudentScreenState extends State<StudentScreen> {
                       child: TextButton.icon(
                         onPressed: organizationWebsite.isEmpty
                             ? null
-                            : () => _openOrganizationWebsiteLink(
+                            : () async => _openOrganizationWebsiteLink(
                                 context: context,
+                                opportunityId: eventData['id'] as String,
                                 websiteLink: organizationWebsite,
                               ),
                         style: TextButton.styleFrom(
@@ -1422,8 +1429,9 @@ class _EventCard extends StatelessWidget {
                           const Spacer(),
                           if (organizationWebsite.isNotEmpty)
                             TextButton.icon(
-                              onPressed: () => _openOrganizationWebsiteLink(
+                              onPressed: () async => _openOrganizationWebsiteLink(
                                 context: context,
+                                opportunityId: eventData['id'] as String,
                                 websiteLink: organizationWebsite,
                               ),
                               style: TextButton.styleFrom(
