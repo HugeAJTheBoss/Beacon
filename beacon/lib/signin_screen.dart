@@ -152,10 +152,6 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  void _signInWithGoogle() {
-    // TODO: implement Google Sign-In + same role check as above
-  }
-
   @override
   Widget build(BuildContext context) {
     // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
@@ -236,58 +232,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Google sign-in button
-                          // OutlinedButton - border-only button used for secondary actions
-                          // Source: https://api.flutter.dev/flutter/material/OutlinedButton-class.html
-                          SizedBox(
-                            height: 52,
-                            child: OutlinedButton(
-                              onPressed: _signInWithGoogle,
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                ),
-                              ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Image.asset(
-                                      AppAssets.googleLogo,
-                                      width: AppLayout.providerMarkSize,
-                                      height: AppLayout.providerMarkSize,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                  const Text('Continue with Google'),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
-                          // Divider
-                          // Row with Dividers - common Flutter pattern for an "or" separator line
-                          // Tutorial: https://www.geeksforgeeks.org/flutter-divider-widget/
-                          const Row(
-                            children: [
-                              Expanded(child: Divider()),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'or continue with email',
-                                  style: TextStyle(
-                                    color: AppColors.subtle,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              Expanded(child: Divider()),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-
                           // Email field
                           // TextFormField - a text input that integrates with Form validation
                           // Tutorial: https://www.geeksforgeeks.org/flutter-textformfield/

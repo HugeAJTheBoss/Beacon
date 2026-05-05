@@ -101,7 +101,6 @@ class StudentScreen extends StatefulWidget {
 }
 
 class _StudentScreenState extends State<StudentScreen> {
-  double _distance = 25;
   double _age = 14;
   String _zip = '';
   DateTime? _dob;
@@ -160,7 +159,6 @@ class _StudentScreenState extends State<StudentScreen> {
       if (savedPreferences['setupDone'] == true) {
         setState(() {
           _age = savedPreferences['age'];
-          _distance = savedPreferences['distance'];
           _zip = savedPreferences['zip'];
           _dob = savedPreferences['dob'];
           final savedTypes = savedPreferences['types'] as Map<String, bool>;
@@ -190,7 +188,6 @@ class _StudentScreenState extends State<StudentScreen> {
       await PreferencesService.saveAll(
         dob: _dob!,
         zip: _zip,
-        distance: _distance,
         types: _types,
         categories: _categories,
       );
@@ -199,7 +196,6 @@ class _StudentScreenState extends State<StudentScreen> {
 
   void _showWelcomePopup() {
     DateTime? draftBirthDate;
-    final zipController = TextEditingController();
     final draftOpportunityTypes = Map<String, bool>.from(_types);
     final draftCategories = Map<String, bool>.from(_categories);
 
@@ -422,31 +418,6 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- Zip Code ---
-                          const Text(
-                            'Zip Code',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: AppColors.title,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: zipController,
-                            keyboardType: TextInputType.number,
-                            maxLength: 5,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            decoration: const InputDecoration(
-                              hintText: 'e.g. 01609',
-                              prefixIcon: Icon(Icons.location_on_outlined),
-                              counterText: '',
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
                           // --- Interests ---
                           const Text(
                             'What are you interested in?',
@@ -547,16 +518,6 @@ class _StudentScreenState extends State<StudentScreen> {
                                 );
                                 return;
                               }
-                              if (zipController.text.trim().length < 5) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Please enter a valid 5-digit zip code.',
-                                    ),
-                                  ),
-                                );
-                                return;
-                              }
                               if (!draftOpportunityTypes.values.any(
                                     (value) => value,
                                   ) ||
@@ -585,7 +546,6 @@ class _StudentScreenState extends State<StudentScreen> {
 
                               setState(() {
                                 _dob = draftBirthDate;
-                                _zip = zipController.text.trim();
                                 _age = calculatedAge.clamp(5, 24);
                                 _types.updateAll(
                                   (key, _) =>
@@ -923,9 +883,7 @@ class _StudentScreenState extends State<StudentScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    eventData['distance'] != null
-                        ? '${eventData['location']} • ${(eventData['distance'] as num).round()} mi'
-                        : '${eventData['location']}',
+                    eventData['location'],
                     style: const TextStyle(color: AppColors.subtle),
                   ),
                 ],
@@ -1110,23 +1068,6 @@ class _StudentScreenState extends State<StudentScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
-                        _FilterLabel(
-                          title: 'Distance',
-                          value: '${_distance.round()} mi',
-                        ),
-                        Slider(
-                          value: _distance,
-                          min: 5,
-                          max: 100,
-                          divisions: 19,
-                          activeColor: AppColors.title,
-                          inactiveColor: AppColors.border,
-                          onChanged: (value) {
-                            setState(() => _distance = value);
-                            _saveFilters();
-                          },
-                        ),
-                        const SizedBox(height: 8),
                         _FilterLabel(
                           title: 'Your Age',
                           value: '${_age.round()}',
@@ -1411,9 +1352,7 @@ class _EventCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
-                                eventData['distance'] != null
-                                    ? '${eventData['location']} • ${(eventData['distance'] as num).round()} mi'
-                                    : '${eventData['location']}',
+                                eventData['location'],
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(

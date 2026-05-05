@@ -20,36 +20,6 @@ class OrgRegisterChoiceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProviderButton({
-    required String label,
-    required String assetPath,
-  }) {
-    return SizedBox(
-      height: 52,
-      child: OutlinedButton(
-        onPressed: () {},
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Image.asset(
-                assetPath,
-                width: AppLayout.providerMarkSize,
-                height: AppLayout.providerMarkSize,
-                fit: BoxFit.contain,
-              ),
-            ),
-            Text(label),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,38 +95,6 @@ class OrgRegisterChoiceScreen extends StatelessWidget {
                               'Continue with your email address',
                             ),
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        const Row(
-                          children: [
-                            Expanded(child: Divider()),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                'or',
-                                style: TextStyle(
-                                  color: AppColors.subtle,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            Expanded(child: Divider()),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        _buildProviderButton(
-                          label: 'Continue with Google',
-                          assetPath: AppAssets.googleLogo,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _buildProviderButton(
-                          label: 'Continue with Microsoft',
-                          assetPath: AppAssets.microsoftLogo,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _buildProviderButton(
-                          label: 'Continue with Apple',
-                          assetPath: AppAssets.appleLogo,
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         Row(

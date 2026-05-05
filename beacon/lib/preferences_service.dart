@@ -23,7 +23,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class PreferencesService {
   static const _keyDob = 'student_dob';
   static const _keyZip = 'student_zip';
-  static const _keyDistance = 'student_distance';
   static const _keyTypes = 'student_types';
   static const _keyCategories = 'student_categories';
   static const _keySetupComplete = 'student_setup_complete';
@@ -107,18 +106,6 @@ class PreferencesService {
     return prefs.getString(_keyZip) ?? '';
   }
 
-  // --- Distance ---
-
-  static Future<void> saveDistance(double distance) async {
-    final prefs = await _instance;
-    await prefs.setDouble(_keyDistance, distance);
-  }
-
-  static Future<double> getDistance() async {
-    final prefs = await _instance;
-    return prefs.getDouble(_keyDistance) ?? 25;
-  }
-
   // --- Types (Club, Event, Volunteering) ---
 
   static Future<void> saveEnabledTypes(Map<String, bool> types) async {
@@ -171,7 +158,6 @@ class PreferencesService {
       'setupDone': true,
       'dob': dob,
       'age': calculateAge(dob),
-      'distance': await getDistance(),
       'zip': await getZip(),
       'types': await getEnabledTypes(),
       'categories': await getEnabledCategories(),
@@ -183,14 +169,12 @@ class PreferencesService {
   static Future<void> saveAll({
     required DateTime dob,
     required String zip,
-    required double distance,
     required Map<String, bool> types,
     required Map<String, bool> categories,
   }) async {
     final prefs = await _instance;
     await prefs.setString(_keyDob, dob.toIso8601String());
     await prefs.setString(_keyZip, zip);
-    await prefs.setDouble(_keyDistance, distance);
 
     final enabledTypes = types.entries.where((e) => e.value).map((e) => e.key).toList();
     await prefs.setStringList(_keyTypes, enabledTypes);
