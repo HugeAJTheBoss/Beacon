@@ -169,7 +169,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  final _newsletterEmailController = TextEditingController();
   final _highlightsPageController = PageController(viewportFraction: 0.88);
   int _activeHighlightIndex = 0;
 
@@ -177,7 +176,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void dispose() {
     // Controllers must be disposed to free memory when the widget is removed
     // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
-    _newsletterEmailController.dispose();
     _highlightsPageController.dispose();
     super.dispose();
   }
@@ -204,70 +202,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (menuAction == 'signin') _signIn();
   }
 
-  void _joinNewsletter() {
-    final email = _newsletterEmailController.text.trim();
-    final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    if (!emailPattern.hasMatch(email)) {
-      // ScaffoldMessenger.showSnackBar - displays a brief message at the bottom
-      // Tutorial: https://www.geeksforgeeks.org/flutter-snackbar-widget/
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email address.')),
-      );
-      return;
-    }
-    FocusScope.of(context).unfocus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Thanks, $email has been added to the newsletter list.')),
-    );
-    _newsletterEmailController.clear();
-  }
-
-  Widget _buildNewsletterEmailField() {
-    return TextField(
-      controller: _newsletterEmailController,
-      keyboardType: TextInputType.emailAddress,
-      // InputDecoration - controls the label, hint, fill colour, and border style
-      // Source: https://api.flutter.dev/flutter/material/InputDecoration-class.html
-      decoration: InputDecoration(
-        hintText: 'Enter your email address',
-        prefixIcon: const Icon(Icons.email_outlined),
-        filled: true,
-        fillColor: AppColors.card,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-      ),
-    );
-  }
-
   Widget _buildHeroSection(BuildContext context, {required bool wide}) {
     // Theme.of(context) - accesses the app's current theme for consistent styling
     // Source: https://api.flutter.dev/flutter/material/Theme/of.html
     final titleStyle = Theme.of(context).textTheme.headlineMedium?.copyWith(
       fontSize: wide ? 48 : 36,
       height: 1.08,
-    );
-
-    final newsletterField = Expanded(child: _buildNewsletterEmailField());
-
-    final newsletterButton = SizedBox(
-      height: 52,
-      // ElevatedButton - filled button for primary actions
-      // Tutorial: https://www.geeksforgeeks.org/flutter-elevatedbutton-widget/
-      child: ElevatedButton(
-        onPressed: _joinNewsletter,
-        child: const Text('Join Newsletter'),
-      ),
     );
 
     return Column(
@@ -285,31 +225,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             fontSize: 18,
           ),
         ),
-        const SizedBox(height: 30),
-        Text(
-          'Join our free STEM newsletter',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 10),
-        if (wide)
-          Row(
-            children: [
-              newsletterField,
-              const SizedBox(width: 12),
-              newsletterButton,
-            ],
-          )
-        else
-          // Padding + Column - standard Flutter layout pattern
-          // Tutorial: https://www.geeksforgeeks.org/flutter-column-widget/
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(width: double.infinity, child: _buildNewsletterEmailField()),
-              const SizedBox(height: 10),
-              newsletterButton,
-            ],
-          ),
       ],
     );
   }

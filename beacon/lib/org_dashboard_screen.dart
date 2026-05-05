@@ -359,6 +359,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     required int total,
     required int upcoming,
     required int draft,
+    required int websiteVisits,
   }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(_pagePadding, _sectionSpacing, _pagePadding, 8),
@@ -386,10 +387,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
               total: total,
               upcoming: upcoming,
               draft: draft,
-              websiteVisits: allEvents.fold<int>(
-                0,
-                (sum, event) => sum + ((event['websiteVisits'] as num?)?.toInt() ?? 0),
-              ),
+              websiteVisits: websiteVisits,
             ),
             const SizedBox(height: _sectionSpacing),
             _buildStatusFilterChips(),
@@ -439,13 +437,22 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final total = allEvents.length;
           final upcoming = allEvents.where((e) => e['status'] == 'Upcoming').length;
           final draft = allEvents.where((e) => e['status'] == 'Draft').length;
+          final websiteVisits = allEvents.fold<int>(
+            0,
+            (sum, event) => sum + ((event['websiteVisits'] as num?)?.toInt() ?? 0),
+          );
           final visibleCount = _activeStatusFilter == 'All'
               ? total
               : allEvents.where((e) => e['status'] == _activeStatusFilter).length;
 
           return Column(
             children: [
-              _buildDashboardHeaderSectionWithData(total: total, upcoming: upcoming, draft: draft),
+              _buildDashboardHeaderSectionWithData(
+                total: total,
+                upcoming: upcoming,
+                draft: draft,
+                websiteVisits: websiteVisits,
+              ),
               Expanded(
                 // AnimatedSwitcher - smoothly transitions between widgets when its child changes
                 // Source: https://api.flutter.dev/flutter/widgets/AnimatedSwitcher-class.html
