@@ -140,6 +140,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
               // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/popUntil.html
               Navigator.popUntil(context, (r) => r.isFirst);
             },
+            // ElevatedButton.styleFrom - customises button appearance inline
+            // Source: https://api.flutter.dev/flutter/material/ElevatedButton/styleFrom.html
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.destructive,
               foregroundColor: AppColors.onPrimary,
@@ -658,7 +660,6 @@ class _OrgEventCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 10),
 
           // title
@@ -738,7 +739,6 @@ class _OrgEventCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 12),
           const Divider(height: 1),
           const SizedBox(height: 8),
@@ -944,6 +944,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
             children: [
               // drag handle
               const SizedBox(height: 12),
+              // drag handle indicator bar
               Container(
                 width: 40,
                 height: 4,
@@ -953,7 +954,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
@@ -974,9 +974,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                   ],
                 ),
               ),
-
               const Divider(),
-
               Expanded(
                 // SingleChildScrollView - makes content scrollable when it overflows
                 // Source: https://api.flutter.dev/flutter/widgets/SingleChildScrollView-class.html
@@ -1001,7 +999,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                               ? 'Title is required'
                               : null,
                         ),
-
                         _SheetField(
                           controller: _descriptionController,
                           label: 'Description *',
@@ -1023,14 +1020,12 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           onChanged: (value) =>
                               setState(() => _category = value!),
                         ),
-
                         _DropdownField(
                           label: 'Type *',
                           value: _type,
                           items: _types,
                           onChanged: (value) => setState(() => _type = value!),
                         ),
-
                         _DropdownField(
                           label: 'Status *',
                           value: _status,
@@ -1049,7 +1044,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                               ? 'Date is required'
                               : null,
                         ),
-
                         _SheetField(
                           controller: _locationController,
                           label: 'Location / Address *',
@@ -1166,9 +1160,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                             return null;
                           },
                         ),
-
                         const SizedBox(height: 8),
-
                         ElevatedButton(
                           onPressed: _submitEventForm,
                           child: Text(

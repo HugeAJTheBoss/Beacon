@@ -38,7 +38,7 @@ class PreferencesService {
     return _prefs!;
   }
 
-  // --- Setup status ---
+  // Setup status
 
   static Future<bool> isSetupComplete() async {
     final prefs = await _instance;
@@ -70,7 +70,7 @@ class PreferencesService {
     return prefs.getBool(_keyRestoreOrgOnLaunch) ?? false;
   }
 
-  // --- Date of birth ---
+  // Date of birth
 
   static Future<void> saveDob(DateTime dob) async {
     final prefs = await _instance;
@@ -96,7 +96,7 @@ class PreferencesService {
     return age.clamp(5, 24);
   }
 
-  // --- Zip code ---
+  // Zip code
 
   static Future<void> saveZip(String zip) async {
     final prefs = await _instance;
@@ -128,7 +128,7 @@ class PreferencesService {
     return {for (var t in all) t: saved.contains(t)};
   }
 
-  // --- Categories (subjects) ---
+  // Categories (subjects)
 
   static Future<void> saveEnabledCategories(Map<String, bool> cats) async {
     final prefs = await _instance;
