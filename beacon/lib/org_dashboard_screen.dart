@@ -58,13 +58,10 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }
 
   void _deleteEvent(Map<String, dynamic> eventData) {
-    // showDialog (display a modal dialog over the UI): https://www.geeksforgeeks.org/flutter/flutter-dialogs/
-    // showDialog - displays a Material dialog above the current screen
-    // Tutorial: https://www.geeksforgeeks.org/flutter-alertdialog-widget/
+    // showDialog, which displays a modal dialog over the UI: https://www.geeksforgeeks.org/flutter/flutter-dialogs/ and https://www.geeksforgeeks.org/flutter-alertdialog-widget/
     showDialog(
       context: context,
       builder: (context) =>
-        // AlertDialog (standard dialog with title, content, actions): https://www.geeksforgeeks.org/alert-dialog-box-in-flutter/
         AlertDialog(
         // RoundedRectangleBorder - gives the dialog rounded corners
         // Source: https://api.flutter.dev/flutter/painting/RoundedRectangleBorder-class.html
@@ -92,8 +89,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
               Navigator.pop(context);
               await DatabaseService().deleteOpportunity(eventData['id'] as String);
             },
-            // ElevatedButton.styleFrom - customises button appearance inline
-            // Source: https://api.flutter.dev/flutter/material/ElevatedButton/styleFrom.html
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.destructive,
               foregroundColor: AppColors.onPrimary,
@@ -135,13 +130,11 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
               await PreferencesService.setRestoreOrgOnLaunch(false);
               await AuthService().signOut();
               if (!context.mounted) return;
-              // Navigator.popUntil - pops routes until the predicate is true
-              // r.isFirst checks if we've reached the bottom of the navigation stack
-              // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/popUntil.html
+              // Navigator.popUntil pops routes until the one before it is true
+              // r.isFirst checks if we've reached the bottom of the nav stack from https://api.flutter.dev/flutter/widgets/NavigatorState/popUntil.html
               Navigator.popUntil(context, (r) => r.isFirst);
             },
-            // ElevatedButton.styleFrom - customises button appearance inline
-            // Source: https://api.flutter.dev/flutter/material/ElevatedButton/styleFrom.html
+            //ElevatedButton.styleFrom customises button appearance inline and not externally https://api.flutter.dev/flutter/material/ElevatedButton/styleFrom.html
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.destructive,
               foregroundColor: AppColors.onPrimary,
@@ -156,13 +149,12 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }
 
   void _openAddEventSheet() {
-    // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
-    // showModalBottomSheet - slides a panel up from the bottom of the screen
-    // Tutorial: https://www.geeksforgeeks.org/flutter-modalBottomSheet/
+    // slide-up panel from bottom https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
+    // https://www.geeksforgeeks.org/flutter-modalBottomSheet/
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // allows the sheet to take up more than half the screen
-      backgroundColor: Colors.transparent, // lets the sheet's own Container handle styling
+      isScrollControlled: true, 
+      backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
         onSubmit: (eventData) async {
           final authService = AuthService();
@@ -171,8 +163,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final orgName = await authService.getCurrentOrgName();
           if (orgName == null) {
             if (!mounted) return;
-            // ScaffoldMessenger.showSnackBar - displays a brief message at the bottom
-            // Tutorial: https://www.geeksforgeeks.org/flutter-snackbar-widget/
+            // shows a short popup message at the bottom
+            // https://www.geeksforgeeks.org/flutter/flutter-snackbar/
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Could not load organization name.')),
             );
@@ -202,7 +194,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
-        existingEvent: eventData, // passing existing data pre-fills the form fields
+        existingEvent: eventData, 
         onSubmit: (updatedEventData) async {
           await DatabaseService().updateOpportunity(
             eventData['id'] as String,
@@ -213,8 +205,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     );
   }
 
-  // FloatingActionButton.extended - FAB with both an icon and a text label
-  // Tutorial: https://www.geeksforgeeks.org/flutter-floating-action-button/
+  // Floating action buitton with both an icon and a text label
+  //  https://www.geeksforgeeks.org/flutter/floatingactionbutton-in-flutter/
   Widget _buildFab() {
     return FloatingActionButton.extended(
       onPressed: _openAddEventSheet,
@@ -232,8 +224,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   Widget _buildStatusFilterChips() {
     return SizedBox(
       height: 34,
-      // ListView.separated - efficient horizontal list with separators between items
-      // Source: https://api.flutter.dev/flutter/widgets/ListView/ListView.separated.html
+      // https://www.geeksforgeeks.org/flutter/listview-class-in-flutter/
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _statusFilters.length,
@@ -243,16 +234,14 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final isSelected = status == _activeStatusFilter;
           final statusColor = _statusColorForFilter(status);
 
-          // AnimatedScale (animate scale of a child widget): https://www.geeksforgeeks.org/flutter/flutter-animatedscale-widget/
-          // AnimatedScale - smoothly scales its child between values
-          // Source: https://api.flutter.dev/flutter/widgets/AnimatedScale-class.html
+          //Claude ai was used to assist in the development of the widget animations
+          // AnimatedScale (animate scale of a child widget): https://api.flutter.dev/flutter/widgets/AnimatedScale-class.html
           return AnimatedScale(
             scale: isSelected ? 1 : 0.97,
             duration: _microDuration,
             curve: Curves.easeOutCubic,
-            // ChoiceChip (single-select chip): https://www.geeksforgeeks.org/flutter-chips/
-            // ChoiceChip - chip widget that holds a single boolean selected state
-            // Tutorial: https://www.geeksforgeeks.org/chip-widgets-in-flutter/
+            // chip widget that holds a single state that's been selected
+            // https://www.geeksforgeeks.org/flutter/flutter-chip-widget/ 
             child: ChoiceChip(
               label: Text(status),
               selected: isSelected,
@@ -303,9 +292,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       );
     }
 
-    // ListView.builder (efficient lazily built list): https://www.geeksforgeeks.org/flutter-listview/
-    // ListView.builder - efficiently builds list items on demand
-    // Tutorial: https://www.geeksforgeeks.org/flutter-listview-builder/
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(
         _pagePadding,
@@ -331,15 +317,12 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     required int draft,
     required int websiteVisits,
   }) {
-    // LayoutBuilder (rebuild when constraints change): https://www.geeksforgeeks.org/flutter/flutter-layoutbuilder-widget/
-    // LayoutBuilder - rebuilds based on the parent's constraints (used for responsive layouts)
-    // Source: https://api.flutter.dev/flutter/widgets/LayoutBuilder-class.html
+
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 560) {
           final compactCardWidth = (constraints.maxWidth - 8) / 2;
-          // Wrap - flowing layout that wraps to next line when out of space
-          // Source: https://api.flutter.dev/flutter/widgets/Wrap-class.html
+          // Wrap widget for making the size wrap to the text https://www.geeksforgeeks.org/dart/wrap-widget-in-flutter/
           return Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -374,16 +357,13 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(_pagePadding, _sectionSpacing, _pagePadding, 8),
-      // Container with BoxDecoration - used to add rounded corners and a drop shadow
-      // Tutorial: https://www.geeksforgeeks.org/flutter-container-widget/
+
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(_cardRadius),
           border: Border.all(color: AppColors.border),
-          // BoxShadow - adds a subtle shadow beneath the card
-          // Source: https://api.flutter.dev/flutter/painting/BoxShadow-class.html
           boxShadow: [
             BoxShadow(
               color: AppColors.ink.withValues(alpha: _cardShadowAlpha),
@@ -415,6 +395,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    //Claude AI was used to help develop this Scaffold class, specifically in making the spacing and order of widgets correct
     // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
     // Tutorial: https://www.geeksforgeeks.org/flutter-scaffold-widget/
     return Scaffold(
@@ -423,8 +404,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
         backgroundColor: AppColors.navBar,
         foregroundColor: AppColors.ink,
         automaticallyImplyLeading: false,
-        // IconButton - a tappable icon that triggers an action
-        // Source: https://api.flutter.dev/flutter/material/IconButton-class.html
         leading: IconButton(
           icon: const Icon(Icons.logout, size: 20),
           onPressed: () => _confirmSignOut(context),
@@ -435,11 +414,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
-      // FloatingActionButton (primary action FAB): https://www.geeksforgeeks.org/flutter-floatingactionbutton/
       floatingActionButton: _buildFab(),
-      // StreamBuilder (rebuild UI on real-time stream updates): https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
-      // StreamBuilder - rebuilds whenever new data arrives from a Stream
-      // Tutorial: https://www.geeksforgeeks.org/flutter-streambuilder-widget/
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: DatabaseService().getOrgOpportunities(orgId),
         builder: (context, snapshot) {
@@ -467,9 +442,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
                 websiteVisits: websiteVisits,
               ),
               Expanded(
-                // AnimatedSwitcher (animate between two different child widgets): https://www.geeksforgeeks.org/flutter-animatedswitcher-widget/
-                // AnimatedSwitcher - smoothly transitions between widgets when its child changes
-                // Source: https://api.flutter.dev/flutter/widgets/AnimatedSwitcher-class.html
                 child: AnimatedSwitcher(
                   duration: _microDuration,
                   switchInCurve: Curves.easeOutCubic,
@@ -576,8 +548,6 @@ class _DashboardEmptyState extends StatelessWidget {
             ),
             if (actionLabel != null && onActionPressed != null) ...[
               const SizedBox(height: 14),
-              // OutlinedButton - border-only button used for secondary actions
-              // Source: https://api.flutter.dev/flutter/material/OutlinedButton-class.html
               OutlinedButton(
                 onPressed: onActionPressed,
                 child: Text(actionLabel!),
@@ -602,10 +572,8 @@ class _OrgEventCard extends StatelessWidget {
   });
 
   // getter that returns a color based on the event's status string
-  // Source: https://dart.dev/language/functions#getters-and-setters
   Color get _statusColor {
-    // switch statement - selects a branch based on the value of a variable
-    // Source: https://dart.dev/language/branches#switch-statements
+    // switch statement, which selects a branch based on the value of a variable
     switch (eventData['status']) {
       case 'Upcoming':
         return AppColors.primary;
@@ -626,9 +594,6 @@ class _OrgEventCard extends StatelessWidget {
         (eventData['location'] as String?)?.trim().isNotEmpty == true
         ? eventData['location'] as String
         : 'Location not set';
-
-    // Container with BoxDecoration - rounded corners and a soft drop shadow
-    // Tutorial: https://www.geeksforgeeks.org/flutter-container-widget/
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -636,8 +601,6 @@ class _OrgEventCard extends StatelessWidget {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadii.panel),
         border: Border.all(color: AppColors.border),
-        // BoxShadow - adds a subtle shadow beneath the card
-        // Source: https://api.flutter.dev/flutter/painting/BoxShadow-class.html
         boxShadow: [
           BoxShadow(
             color: AppColors.ink.withValues(alpha: 0.04),
@@ -649,7 +612,6 @@ class _OrgEventCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // status + category chips
           Row(
             children: [
               _StatusChip(label: eventData['status'], color: _statusColor),
@@ -747,8 +709,6 @@ class _OrgEventCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              // TextButton.icon - text button with a leading icon
-              // Source: https://api.flutter.dev/flutter/material/TextButton-class.html
               TextButton.icon(
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined, size: 16),

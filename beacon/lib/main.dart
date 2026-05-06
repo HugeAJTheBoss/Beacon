@@ -255,7 +255,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     // MediaQuery for getting screen size info: https://www.geeksforgeeks.org/flutter-managing-the-mediaquery-object/
     final isTablet = MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
-    // https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    //Scaffold class https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
       // AppBar (top navigation bar UI): https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
       appBar: AppBar(
@@ -269,13 +269,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             const SizedBox(width: AppSpacing.sm),
             _NavSecondaryButton(label: 'Register Organization', onTap: _registerOrganization),
             const SizedBox(width: 6),
-            // TextButton: https://www.geeksforgeeks.org/flutter/flutter-textbutton-widget/
+            // TextButton widget: https://www.geeksforgeeks.org/flutter/flutter-textbutton-widget/
             TextButton(onPressed: _signIn, child: const Text('Sign In')),
             const SizedBox(width: AppSpacing.sm),
           ] else ...[
             // TextButton: https://www.geeksforgeeks.org/flutter/flutter-textbutton-widget/
             TextButton(onPressed: _browseEvents, child: const Text('Browse')),
-            // PopupMenuButton (overflow menu with selectable items): https://www.geeksforgeeks.org/flutter/flutter-popupmenubutton-widget/
+            // PopupMenuButton for overflow menu: https://www.geeksforgeeks.org/flutter/flutter-pop-up-menu/
             PopupMenuButton<String>(
               icon: const Icon(Icons.menu_rounded),
               onSelected: _handleMenuSelection,
@@ -296,7 +296,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ? 48.0
               : (isTabletLayout ? 28.0 : AppSpacing.lg);
 
-          // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
+          // SingleChildScrollView scrollable text: https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               contentHorizontalPadding,
@@ -374,7 +374,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
-// ─── Nav Buttons ──────────────────────────────────────────────────────────────
 
 class _NavPrimaryButton extends StatelessWidget {
   final String label;
@@ -385,7 +384,6 @@ class _NavPrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: AppLayout.navBarActionButtonHeight,
-      // ElevatedButton (primary action button): https://www.geeksforgeeks.org/flutter/flutter-material-design/ :contentReference[oaicite:7]{index=7}
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
@@ -406,7 +404,7 @@ class _NavSecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: AppLayout.navBarActionButtonHeight,
-      // OutlinedButton (border-style button): https://www.geeksforgeeks.org/flutter/flutter-material-design/ :contentReference[oaicite:9]{index=9}
+      // OutlinedButton (border-style button): https://www.geeksforgeeks.org/flutter/flutter-material-widget-outlined-button-class/
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
@@ -421,18 +419,16 @@ class _NavSecondaryButton extends StatelessWidget {
   }
 }
 
-// ─── Hero Graphic Card ────────────────────────────────────────────────────────
-
 class _HeroGraphicCard extends StatelessWidget {
   final double height;
   const _HeroGraphicCard({required this.height});
 
   @override
   Widget build(BuildContext context) {
-    // Container (layout + styling wrapper): https://www.geeksforgeeks.org/flutter/flutter-working-with-layouts/
+    // Container: https://www.geeksforgeeks.org/flutter/flutter-working-with-layouts/
     return Container(
       height: height,
-      // BoxDecoration (borders, radius, shadows): https://www.geeksforgeeks.org/flutter/flutter-working-with-layouts/
+      // BoxDecoration: https://www.geeksforgeeks.org/flutter/flutter-boxdecoration-widget/
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
         boxShadow: [
