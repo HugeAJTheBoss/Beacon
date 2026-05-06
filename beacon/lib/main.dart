@@ -443,14 +443,14 @@ class _HeroGraphicCard extends StatelessWidget {
           ),
         ],
       ),
-      // ClipRRect (rounded clipping of child widgets): https://www.geeksforgeeks.org/flutter/flutter-cliprrect-widget/
+      // ClipRRect (rounded clipping of child widgets): https://www.geeksforgeeks.org/flutter/cliprect-widget-in-flutter/
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
-        // Stack (layering widgets on top of each other): https://www.geeksforgeeks.org/flutter/flutter-stack-widget/
+        // Stack for layering widgets on top of each other: https://www.geeksforgeeks.org/flutter/flutter-stack-widget/
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Image.asset (load local images): https://www.geeksforgeeks.org/flutter/flutter-image-widget/
+            // Image.asset (for loading local images): https://www.geeksforgeeks.org/dart/how-to-add-images-in-flutter-app/
             Image.asset(
               AppAssets.stemLogoPlaceholder,
               fit: BoxFit.cover,
@@ -475,8 +475,7 @@ class _HeroGraphicCard extends StatelessWidget {
   }
 }
 
-// ─── Carousel Card ────────────────────────────────────────────────────────────
-
+//Carousel Card
 class _CarouselCard extends StatelessWidget {
   final String title;
   final String subtitle;

@@ -1,13 +1,3 @@
-// Tutorials/sources used for this screen:
-// StatefulWidget basics:          https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
-// Form validation pattern:        https://docs.flutter.dev/cookbook/forms/validation
-// AlertDialog usage:              https://www.geeksforgeeks.org/flutter-alertdialog-widget/
-// Navigator push/pop patterns:    https://www.geeksforgeeks.org/flutter-navigator/
-// TextFormField usage:            https://www.geeksforgeeks.org/flutter-textformfield/
-// Password visibility pattern:    https://www.geeksforgeeks.org/flutter-show-hide-password-in-textfield/
-// Circular progress indicator:    https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
-// mounted check (needed):         https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
-
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'org_register_choice_screen.dart';
@@ -24,14 +14,14 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   // GlobalKey<FormState> (identify and validate a Form): https://www.geeksforgeeks.org/flutter-form-validation/
-  final _formKey = GlobalKey<FormState>();
+  final _form_key = GlobalKey<FormState>();
   // TextEditingController (read and control TextField input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _email_controller = TextEditingController();
+  final _password_controller = TextEditingController();
 
   // bool state variables to track UI state: https://www.geeksforgeeks.org/dart/dart-data-types/
-  bool _passwordVisible = false;
-  bool _isLoading = false;
+  bool _password_visible = false;
+  bool _is_loading = false;
 
   // showDialog / AlertDialog (modal dialog for status messages): https://www.geeksforgeeks.org/flutter/flutter-alertdialog-widget/
   // showDialog - displays a Material dialog above the current screen
@@ -41,7 +31,7 @@ class _SignInScreenState extends State<SignInScreen> {
     required String message,
     bool isError = false,
   }) {
-    final actionColor = isError ? AppColors.destructive : AppColors.primary;
+    final action_color = isError ? AppColors.destructive : AppColors.primary;
     return showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -65,7 +55,7 @@ class _SignInScreenState extends State<SignInScreen> {
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: actionColor,
+              backgroundColor: action_color,
               foregroundColor: AppColors.onPrimary,
               elevation: 0,
               shape: const StadiumBorder(),
@@ -95,25 +85,25 @@ class _SignInScreenState extends State<SignInScreen> {
   // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _email_controller.dispose();
+    _password_controller.dispose();
     super.dispose();
   }
 
   // async/await and try-catch for error handling: https://www.geeksforgeeks.org/using-await-async-in-dart/
   void _signIn() async {
     // Form validation: https://www.geeksforgeeks.org/flutter-form-validation/
-    if (!_formKey.currentState!.validate()) return;
+    if (!_form_key.currentState!.validate()) return;
     // setState (trigger UI rebuild): https://www.geeksforgeeks.org/flutter/flutter-state-management/
-    setState(() => _isLoading = true);
+    setState(() => _is_loading = true);
 
     try {
       final user = await AuthService().loginOrg(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: _email_controller.text.trim(),
+        password: _password_controller.text.trim(),
       );
 
-      setState(() => _isLoading = false);
+      setState(() => _is_loading = false);
       if (!mounted) return;
 
       if (user != null) {
@@ -130,7 +120,7 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       }
     } on PendingApprovalException {
-      setState(() => _isLoading = false);
+      setState(() => _is_loading = false);
       if (!mounted) return;
       _showStatusDialog(
         title: 'Account Approval Pending',
@@ -138,7 +128,7 @@ class _SignInScreenState extends State<SignInScreen> {
             'Your organization account is still under review. We will email you once it is approved.',
       );
     } on AccountNotApprovedException {
-      setState(() => _isLoading = false);
+      setState(() => _is_loading = false);
       if (!mounted) return;
       _showStatusDialog(
         title: 'Account Approval Pending',
@@ -146,7 +136,7 @@ class _SignInScreenState extends State<SignInScreen> {
             'Your organization account is still under review. We will email you once it is approved.',
       );
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() => _is_loading = false);
       if (!mounted) return;
       _showStatusDialog(
         title: 'Sign In Failed',
@@ -177,7 +167,7 @@ class _SignInScreenState extends State<SignInScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               child: Form(
-                key: _formKey,
+                key: _form_key,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -212,7 +202,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     // Email field
                     TextFormField(
-                      controller: _emailController,
+                      controller: _email_controller,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
@@ -225,20 +215,20 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     // Password field with visibility toggle
                     TextFormField(
-                      controller: _passwordController,
-                      obscureText: !_passwordVisible,
+                      controller: _password_controller,
+                      obscureText: !_password_visible,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _passwordVisible
+                            _password_visible
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                             color: AppColors.subtle,
                           ),
                           onPressed: () => setState(
-                            () => _passwordVisible = !_passwordVisible,
+                            () => _password_visible = !_password_visible,
                           ),
                         ),
                       ),
@@ -248,8 +238,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     // Sign in button
                     ElevatedButton(
-                      onPressed: _isLoading ? null : _signIn,
-                      child: _isLoading
+                      onPressed: _is_loading ? null : _signIn,
+                      child: _is_loading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
