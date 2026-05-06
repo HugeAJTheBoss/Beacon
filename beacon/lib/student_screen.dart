@@ -11,10 +11,10 @@
 // Flutter mounted check (needed): https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
 
 import 'package:flutter/material.dart';
-// FilteringTextInputFormatter (restrict text input to certain characters): https://www.geeksforgeeks.org/flutter/flutter-textinputformatter/
+// FilteringTextInputFormatter (restrict text input to certain characters): https://www.geeksforgeeks.org/flutter/flutter-creating-number-input-field/
 import 'package:flutter/services.dart';
 
-// url_launcher (open URLs in external browser or app): https://www.geeksforgeeks.org/flutter/flutter-open-url-in-browser/
+// url_launcher (open URLs in external browser or app): https://www.geeksforgeeks.org/flutter/flutter-url-launcher/
 import 'package:url_launcher/url_launcher.dart';
 import 'link_opener_stub.dart' if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
@@ -100,7 +100,7 @@ class _StudentScreenState extends State<StudentScreen> {
   String _zip = '';
   DateTime? _dob;
   bool _loading = true;
-  // ScrollController (control scrollable widgets programmatically): https://www.geeksforgeeks.org/flutter/flutter-scrollcontroller/
+  // ScrollController (control scrollable widgets programmatically): https://www.geeksforgeeks.org/flutter/flutter-scroll-down-to-bottom-or-top-of-list-in-listview/
   final ScrollController _browseScrollController = ScrollController();
   Map<String, dynamic>? _selectedEventData;
 
@@ -193,7 +193,7 @@ class _StudentScreenState extends State<StudentScreen> {
     }
   }
 
-  // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
+  // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter/flutter-modal-bottom-sheet/
   void _showWelcomePopup() {
     DateTime? draftBirthDate;
     final draftOpportunityTypes = Map<String, bool>.from(_types);
@@ -206,10 +206,10 @@ class _StudentScreenState extends State<StudentScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        // StatefulBuilder (rebuild only the bottom sheet widget subtree): https://www.geeksforgeeks.org/flutter/flutter-statefulbuilder-widget/
+        // StatefulBuilder (rebuild only the bottom sheet widget subtree): https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/  https://api.flutter.dev/flutter/widgets/StatefulBuilder-class.html
         return StatefulBuilder(
           builder: (context, setModalState) {
-            // DraggableScrollableSheet (sheet that can be dragged to resize): https://www.geeksforgeeks.org/flutter/flutter-draggablescrollablesheet/
+            // DraggableScrollableSheet (sheet that can be dragged to resize): https://www.geeksforgeeks.org/flutter/flutter-draggable-scrollable-sheet/
             return DraggableScrollableSheet(
               initialChildSize: 0.92,
               minChildSize: 0.92,
@@ -268,7 +268,7 @@ class _StudentScreenState extends State<StudentScreen> {
                         children: [
                           const SizedBox(height: 16),
 
-                          // --- Date of Birth ---
+                          //  Date of Birth
                           const Text(
                             'Date of Birth',
                             style: TextStyle(
@@ -278,7 +278,7 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          // showDatePicker (built-in calendar date picker): https://www.geeksforgeeks.org/flutter-date-picker-in-flutter/
+                          // showDatePicker (built-in calendar date picker): https://www.geeksforgeeks.org/flutter/flutter-set-min-and-max-selectable-dates-in-datepicker//
                           InkWell(
                             onTap: () async {
                               final picked = await showDatePicker(
@@ -432,7 +432,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 8),
                           // Wrap (flow layout that wraps children): https://www.geeksforgeeks.org/wrap-widget-in-flutter/
-                          // FilterChip (toggleable chip for filters): https://www.geeksforgeeks.org/flutter-chips/
+                          // FilterChip (toggleable chip for filters): https://api.flutter.dev/flutter/material/FilterChip-class.html
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -504,7 +504,7 @@ class _StudentScreenState extends State<StudentScreen> {
                       ),
                     ),
 
-                    // --- Get Started button ---
+                    // Get Started button
                     SafeArea(
                       top: false,
                       child: Padding(
@@ -585,7 +585,7 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
-  // showModalBottomSheet for the report dialog: https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
+  
   void _showReportDialog(Map<String, dynamic> eventData) {
     String? selectedReportReason;
     final TextEditingController reportDetailsController =
@@ -1030,7 +1030,7 @@ class _StudentScreenState extends State<StudentScreen> {
         ],
       ),
 
-      // Drawer (side panel navigation): https://www.geeksforgeeks.org/flutter-drawer-widget/
+      // Drawer (side panel navigation): https://www.geeksforgeeks.org/flutter/drawer-widget-in-flutter/
       endDrawer: Drawer(
         backgroundColor: AppColors.card,
         surfaceTintColor: Colors.transparent,
@@ -1130,7 +1130,7 @@ class _StudentScreenState extends State<StudentScreen> {
                 final columnWidth =
                   (availableWidth - (columnGap * (columns - 1))) / columns;
 
-                // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter-singlechildscrollview-widget-in-flutter/
+                // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
                 return SingleChildScrollView(
                   controller: _browseScrollController,
                   padding: EdgeInsets.fromLTRB(
@@ -1244,7 +1244,7 @@ class _EventCard extends StatelessWidget {
   });
 
   @override
-  // Material + InkWell (tappable card with ripple effect): https://www.geeksforgeeks.org/inkwell-widget-in-flutter/
+  // InkWell : https://www.geeksforgeeks.org/flutter/flutter-ripple-effect/
   Widget build(BuildContext context) {
     final type = (eventData['type'] as String?) ?? 'Event';
     final category =
@@ -1254,7 +1254,6 @@ class _EventCard extends StatelessWidget {
     final typeColor = _typeAccentColor(type);
     final typeTint = _typeTintColor(type);
     final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
-    // Material (provides ink splash and elevation): https://www.geeksforgeeks.org/flutter/flutter-material-widget/
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadii.lg),
