@@ -64,6 +64,69 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     // TODO: implement Google Sign-In
   }
 
+  String? _validateOrgEmail(String? value) {
+    final email = value?.trim() ?? '';
+    if (email.isEmpty) return 'Email is required';
+    
+    // RFC 5322 simplified email pattern
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
+    );
+    
+    if (!emailRegex.hasMatch(email)) {
+      return 'Enter a valid email address';
+    }
+    
+    // Check for organization email (not personal)
+    final commonPersonalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
+    final domain = email.split('@').last.toLowerCase();
+    if (commonPersonalDomains.contains(domain)) {
+      return 'Please use your organization email, not a personal email';
+    }
+    
+    return null;
+  }
+
+  String? _validateRegistrationNumber(String? value) {
+    final regNum = value?.trim() ?? '';
+    if (regNum.isEmpty) return 'Registration number is required';
+    
+    // Accept various formats: 12-3456789, 123456789, XX-XXXXXXX, etc.
+    // At least 7-9 characters/digits
+    final cleanedNum = regNum.replaceAll('-', '').replaceAll(RegExp(r'\s'), '');
+    if (cleanedNum.length < 7 || cleanedNum.length > 15) {
+      return 'Registration number should be 7-15 characters';
+    }
+    
+    // Check for at least some alphanumeric content
+    if (!RegExp(r'[a-zA-Z0-9]').hasMatch(cleanedNum)) {
+      return 'Registration number must contain alphanumeric characters';
+    }
+    
+    return null;
+  }
+
+  String? _validateWebsiteUrl(String? value) {
+    final url = value?.trim() ?? '';
+    if (url.isEmpty) return 'Website URL is required';
+    
+    final normalizedUrl = url.startsWith('http://') || url.startsWith('https://')
+        ? url
+        : 'https://$url';
+    
+    final uri = Uri.tryParse(normalizedUrl);
+    if (uri == null || uri.host.isEmpty) {
+      return 'Enter a valid website URL';
+    }
+    
+    // Check for valid domain structure
+    if (!uri.host.contains('.')) {
+      return 'Domain must contain at least one dot (e.g., example.com)';
+    }
+    
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,8 +202,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   label: 'Email',
                   hint: 'contact@yourorg.org',
                   keyboardType: TextInputType.emailAddress,
-                  validator: (val) =>
-                      !val!.contains('@') ? 'Enter a valid email' : null,
+                  validator: (val) => _validateOrgEmail(val),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
@@ -174,15 +236,13 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   label: 'Website URL',
                   hint: 'https://yourorg.org',
                   keyboardType: TextInputType.url,
-                  validator: (val) =>
-                      val!.isEmpty ? 'Website URL is required' : null,
+                  validator: (val) => _validateWebsiteUrl(val),
                 ),
                 _FormField(
                   controller: _einController,
                   label: 'EIN / Registration Number',
                   hint: 'e.g. 12-3456789',
-                  validator: (val) =>
-                      val!.isEmpty ? 'Registration number is required' : null,
+                  validator: (val) => _validateRegistrationNumber(val),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),

@@ -285,7 +285,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 context: context,
                                 initialDate:
                                     draftBirthDate ?? DateTime(2010, 1, 1),
-                                firstDate: DateTime(1990),
+                                firstDate: DateTime(1900),
                                 lastDate: DateTime.now(),
                                 helpText: 'Select date of birth',
                                 initialEntryMode:

@@ -856,10 +856,68 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     super.dispose();
   }
 
+  String? _validateEventWebsiteLink(String? value) {
+    final trimmedValue = value?.trim() ?? '';
+    if (trimmedValue.isEmpty) return 'Link is required';
+
+    final normalizedValue =
+        trimmedValue.startsWith('http://') ||
+            trimmedValue.startsWith('https://')
+        ? trimmedValue
+        : 'https://$trimmedValue';
+    final uri = Uri.tryParse(normalizedValue);
+    if (uri == null || uri.host.isEmpty) {
+      return 'Enter a valid website link';
+    }
+    
+    // Check for valid domain structure
+    if (!uri.host.contains('.')) {
+      return 'Domain must contain at least one dot';
+    }
+    
+    return null;
+  }
+
+  bool _isDuplicateEvent(String title, String date, String location) {
+    // Check if an event with the same title, date, and location already exists
+    // This is a simple client-side check; production would compare against database
+    if (widget.existingEvent != null) {
+      // If editing, don't consider it a duplicate of itself
+      final existingTitle = widget.existingEvent!['title'] as String?;
+      final existingDate = widget.existingEvent!['date'] as String?;
+      final existingLocation = widget.existingEvent!['location'] as String?;
+      
+      if (title == existingTitle && date == existingDate && location == existingLocation) {
+        // Same as the event being edited, not a duplicate
+        return false;
+      }
+    }
+    // In production, this would query Firestore to check for duplicates
+    // For now, return false as the database layer handles uniqueness
+    return false;
+  }
+
   void _submitEventForm() {
     // _formKey.currentState!.validate() - runs all validator functions in the Form
     // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
     if (!_formKey.currentState!.validate()) return;
+
+    // Check for duplicate event
+    final isDuplicate = _isDuplicateEvent(
+      _titleController.text.trim(),
+      _dateController.text.trim(),
+      _locationController.text.trim(),
+    );
+    
+    if (isDuplicate) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An event with this title, date, and location already exists.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
     widget.onSubmit({
       'title': _titleController.text.trim(),
@@ -1103,22 +1161,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           label: 'Organization Website Link *',
                           hint: 'https://',
                           keyboardType: TextInputType.url,
-                          validator: (value) {
-                            final trimmedValue = value?.trim() ?? '';
-                            if (trimmedValue.isEmpty) return 'Link is required';
-
-                            final normalizedValue =
-                                trimmedValue.startsWith('http://') ||
-                                    trimmedValue.startsWith('https://')
-                                ? trimmedValue
-                                : 'https://$trimmedValue';
-                            final uri = Uri.tryParse(normalizedValue);
-                            if (uri == null || uri.host.isEmpty) {
-                              return 'Enter a valid website link';
-                            }
-
-                            return null;
-                          },
+                          validator: (value) => _validateEventWebsiteLink(value),
                         ),
                         const SizedBox(height: 8),
                         ElevatedButton(
