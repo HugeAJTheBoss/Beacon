@@ -59,6 +59,7 @@ android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 # iOS
 # =============================================================================
 **/ios/Pods/
+**/ios/Podfile/
 **/ios/.symlinks/
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/flutter_export_environment.sh
