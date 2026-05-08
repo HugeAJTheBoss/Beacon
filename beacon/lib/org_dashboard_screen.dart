@@ -1,12 +1,9 @@
-// Sources also used in previous files
-// Firebase Firestore:         https://firebase.flutter.dev/docs/firestore/usage/
-// Firebase Auth:              https://firebase.flutter.dev/docs/auth/usage/
-// StatefulWidget/State:       https://api.flutter.dev/flutter/widgets/StatefulWidget-class.html
-// Navigator/MaterialPageRoute:https://api.flutter.dev/flutter/widgets/Navigator/push.html
-// ElevatedButton:             https://api.flutter.dev/flutter/material/ElevatedButton-class.html
-// Scaffold/AppBar:            https://api.flutter.dev/flutter/material/Scaffold-class.html
-// setState:                   https://api.flutter.dev/flutter/widgets/State/setState.html
-// mounted check:              https://api.flutter.dev/flutter/widgets/State/mounted.html
+// Organization-side dashboard: shows the org's own opportunities, summary
+// metrics, and the create/edit sheet.
+// StreamBuilder for live Firestore data: https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
+// ListView builder pattern: https://www.geeksforgeeks.org/flutter/listview-builder-in-flutter/
+// Modal bottom sheet: https://www.geeksforgeeks.org/flutter/flutter-modal-bottom-sheet/
+// AlertDialog tutorial: https://www.geeksforgeeks.org/flutter/alert-dialog-box-in-flutter/
 
 import 'package:flutter/material.dart';
 
@@ -39,12 +36,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
 
   String _activeStatusFilter = 'All';
 
-  // getter that returns a color based on the event's status string
-  // Source: https://dart.dev/language/functions#getters-and-setters
+  // Maps the status string ('Upcoming', 'Draft', 'Past') to the chip colour.
   Color _statusColorForFilter(String status) {
-    // switch statement in Dart: https://www.geeksforgeeks.org/switch-case-in-dart/
-    // switch statement - selects a branch based on the value of a variable
-    // Source: https://dart.dev/language/branches#switch-statements
     switch (status) {
       case 'Upcoming':
         return AppColors.primary;
@@ -57,14 +50,12 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     }
   }
 
+  // showDialog tutorial: https://www.geeksforgeeks.org/flutter/flutter-dialogs/
   void _deleteEvent(Map<String, dynamic> eventData) {
-    // showDialog, which displays a modal dialog over the UI: https://www.geeksforgeeks.org/flutter/flutter-dialogs/ and https://www.geeksforgeeks.org/flutter-alertdialog-widget/
     showDialog(
       context: context,
       builder: (context) =>
         AlertDialog(
-        // RoundedRectangleBorder - gives the dialog rounded corners
-        // Source: https://api.flutter.dev/flutter/painting/RoundedRectangleBorder-class.html
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
         ),
@@ -127,14 +118,13 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
+              // Clear the "auto-restore org session" flag and sign out, then
+              // pop back to the welcome screen at the bottom of the stack.
               await PreferencesService.setRestoreOrgOnLaunch(false);
               await AuthService().signOut();
               if (!context.mounted) return;
-              // Navigator.popUntil pops routes until the one before it is true
-              // r.isFirst checks if we've reached the bottom of the nav stack from https://api.flutter.dev/flutter/widgets/NavigatorState/popUntil.html
               Navigator.popUntil(context, (r) => r.isFirst);
             },
-            //ElevatedButton.styleFrom customises button appearance inline and not externally https://api.flutter.dev/flutter/material/ElevatedButton/styleFrom.html
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.destructive,
               foregroundColor: AppColors.onPrimary,
@@ -148,12 +138,11 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     );
   }
 
+  // showModalBottomSheet tutorial: https://www.geeksforgeeks.org/flutter/flutter-modal-bottom-sheet/
   void _openAddEventSheet() {
-    // slide-up panel from bottom https://www.geeksforgeeks.org/flutter-showmodalbottomsheet/
-    // https://www.geeksforgeeks.org/flutter-modalBottomSheet/
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, 
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
         onSubmit: (eventData) async {
@@ -163,8 +152,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final orgName = await authService.getCurrentOrgName();
           if (orgName == null) {
             if (!mounted) return;
-            // shows a short popup message at the bottom
-            // https://www.geeksforgeeks.org/flutter/flutter-snackbar/
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Could not load organization name.')),
             );
@@ -194,7 +181,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AddEventSheet(
-        existingEvent: eventData, 
+        existingEvent: eventData,
         onSubmit: (updatedEventData) async {
           await DatabaseService().updateOpportunity(
             eventData['id'] as String,
@@ -205,8 +192,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     );
   }
 
-  // Floating action buitton with both an icon and a text label
-  //  https://www.geeksforgeeks.org/flutter/floatingactionbutton-in-flutter/
+  // FloatingActionButton tutorial: https://www.geeksforgeeks.org/flutter/floatingactionbutton-in-flutter/
   Widget _buildFab() {
     return FloatingActionButton.extended(
       onPressed: _openAddEventSheet,
@@ -221,10 +207,10 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }
 
 
+  // ListView reference: https://www.geeksforgeeks.org/flutter/listview-class-in-flutter/
   Widget _buildStatusFilterChips() {
     return SizedBox(
       height: 34,
-      // https://www.geeksforgeeks.org/flutter/listview-class-in-flutter/
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _statusFilters.length,
@@ -234,14 +220,11 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
           final isSelected = status == _activeStatusFilter;
           final statusColor = _statusColorForFilter(status);
 
-          //Claude ai was used to assist in the development of the widget animations
-          // AnimatedScale (animate scale of a child widget): https://api.flutter.dev/flutter/widgets/AnimatedScale-class.html
+          // Tiny scale-down on unselected chips so the active one pops.
           return AnimatedScale(
             scale: isSelected ? 1 : 0.97,
             duration: _microDuration,
             curve: Curves.easeOutCubic,
-            // chip widget that holds a single state that's been selected
-            // https://www.geeksforgeeks.org/flutter/flutter-chip-widget/ 
             child: ChoiceChip(
               label: Text(status),
               selected: isSelected,
@@ -317,12 +300,11 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
     required int draft,
     required int websiteVisits,
   }) {
-
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 560) {
+          // Two-column layout for narrow screens.
           final compactCardWidth = (constraints.maxWidth - 8) / 2;
-          // Wrap widget for making the size wrap to the text https://www.geeksforgeeks.org/dart/wrap-widget-in-flutter/
           return Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -357,7 +339,6 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
   }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(_pagePadding, _sectionSpacing, _pagePadding, 8),
-
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -395,9 +376,8 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    //Claude AI was used to help develop this Scaffold class, specifically in making the spacing and order of widgets correct
-    // Scaffold - provides the basic Material Design page structure (appbar, body, etc.)
-    // Tutorial: https://www.geeksforgeeks.org/flutter-scaffold-widget/
+    // Scaffold + AppBar tutorial: https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    // AppBar tutorial: https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -571,9 +551,7 @@ class _OrgEventCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  // getter that returns a color based on the event's status string
   Color get _statusColor {
-    // switch statement, which selects a branch based on the value of a variable
     switch (eventData['status']) {
       case 'Upcoming':
         return AppColors.primary;
@@ -624,7 +602,6 @@ class _OrgEventCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // title
           Text(
             eventData['title'],
             style: const TextStyle(
@@ -705,7 +682,7 @@ class _OrgEventCard extends StatelessWidget {
           const Divider(height: 1),
           const SizedBox(height: 8),
 
-          // edit + delete buttons
+          // Edit + delete
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -749,8 +726,6 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // withValues(alpha:) - creates a copy of the color with adjusted opacity
-    // Source: https://api.flutter.dev/flutter/dart-ui/Color/withValues.html
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
@@ -769,9 +744,10 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-// Bottom sheet used for both creating and editing events.
-// Reusing one widget for both modes keeps logic in one place (DRY principle)
-// Source: https://dart.dev/effective-dart/design
+// One sheet powers both create and edit. When `existingEvent` is provided we
+// pre-fill the form and the submit button switches to "Save Changes".
+// DraggableScrollableSheet tutorial: https://www.geeksforgeeks.org/flutter/flutter-draggable-scrollable-sheet/
+// Form validation tutorial: https://www.geeksforgeeks.org/flutter/form-validation-in-flutter/
 class _AddEventSheet extends StatefulWidget {
   final Map<String, dynamic>? existingEvent;
   final ValueChanged<Map<String, dynamic>> onSubmit;
@@ -783,17 +759,12 @@ class _AddEventSheet extends StatefulWidget {
 }
 
 class _AddEventSheetState extends State<_AddEventSheet> {
-  // GlobalKey<FormState> - uniquely identifies the Form and lets us call validate()
-  // Tutorial: https://www.geeksforgeeks.org/flutter-forms/
   final _formKey = GlobalKey<FormState>();
 
-  // TextEditingController - reads and writes text in a TextFormField
-  // Tutorial: https://www.geeksforgeeks.org/flutter-textfield-widget/
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _costController = TextEditingController();
-  final _capacityController = TextEditingController();
   final _linkController = TextEditingController();
   final _dateController = TextEditingController();
 
@@ -802,7 +773,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   String _status = 'Upcoming';
   int _ageMin = 10;
   int _ageMax = 24;
-  
+
 
   final List<String> _categories = [
     'Robotics',
@@ -817,8 +788,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
 
   @override
   void initState() {
-    // initState - called once when the widget is inserted into the tree
-    // Tutorial: https://www.geeksforgeeks.org/flutter-initstate/
     super.initState();
     final existingEventData = widget.existingEvent;
     if (existingEventData != null) {
@@ -826,13 +795,11 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     }
   }
 
-  // Pre-fill fields when editing an existing event
   void _populateFromExistingEvent(Map<String, dynamic> existingEventData) {
     _titleController.text = existingEventData['title'] ?? '';
     _descriptionController.text = existingEventData['description'] ?? '';
     _locationController.text = existingEventData['location'] ?? '';
     _costController.text = existingEventData['cost'] ?? '';
-    _capacityController.text = existingEventData['capacity']?.toString() ?? '';
     _linkController.text = existingEventData['link'] ?? '';
     _dateController.text = existingEventData['date'] ?? '';
     _category = existingEventData['category'] ?? 'Robotics';
@@ -844,13 +811,10 @@ class _AddEventSheetState extends State<_AddEventSheet> {
 
   @override
   void dispose() {
-    // Controllers must be disposed to free memory when the widget is removed
-    // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     _costController.dispose();
-    _capacityController.dispose();
     _linkController.dispose();
     _dateController.dispose();
     super.dispose();
@@ -869,55 +833,16 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     if (uri == null || uri.host.isEmpty) {
       return 'Enter a valid website link';
     }
-    
-    // Check for valid domain structure
+
     if (!uri.host.contains('.')) {
       return 'Domain must contain at least one dot';
     }
-    
+
     return null;
   }
 
-  bool _isDuplicateEvent(String title, String date, String location) {
-    // Check if an event with the same title, date, and location already exists
-    // This is a simple client-side check; production would compare against database
-    if (widget.existingEvent != null) {
-      // If editing, don't consider it a duplicate of itself
-      final existingTitle = widget.existingEvent!['title'] as String?;
-      final existingDate = widget.existingEvent!['date'] as String?;
-      final existingLocation = widget.existingEvent!['location'] as String?;
-      
-      if (title == existingTitle && date == existingDate && location == existingLocation) {
-        // Same as the event being edited, not a duplicate
-        return false;
-      }
-    }
-    // In production, this would query Firestore to check for duplicates
-    // For now, return false as the database layer handles uniqueness
-    return false;
-  }
-
   void _submitEventForm() {
-    // _formKey.currentState!.validate() - runs all validator functions in the Form
-    // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
     if (!_formKey.currentState!.validate()) return;
-
-    // Check for duplicate event
-    final isDuplicate = _isDuplicateEvent(
-      _titleController.text.trim(),
-      _dateController.text.trim(),
-      _locationController.text.trim(),
-    );
-    
-    if (isDuplicate) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An event with this title, date, and location already exists.'),
-          duration: Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
 
     widget.onSubmit({
       'title': _titleController.text.trim(),
@@ -929,9 +854,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
       'ageMin': _ageMin,
       'ageMax': _ageMax,
       'cost': _costController.text.trim(),
-      // int.tryParse - converts a String to int, returns null if it fails
-      // Source: https://api.dart.dev/dart-core/int/tryParse.html
-      'capacity': int.tryParse(_capacityController.text.trim()) ?? 0,
       'link': _linkController.text.trim(),
       'status': _status,
     });
@@ -942,8 +864,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   Widget build(BuildContext context) {
     final isEditing = widget.existingEvent != null;
 
-    // DraggableScrollableSheet - a bottom sheet the user can drag to resize
-    // Tutorial: https://www.geeksforgeeks.org/draggablescrollablesheet-in-flutter/
     return DraggableScrollableSheet(
       initialChildSize: 0.92,
       minChildSize: 0.5,
@@ -952,17 +872,14 @@ class _AddEventSheetState extends State<_AddEventSheet> {
         return Container(
           decoration: const BoxDecoration(
             color: AppColors.card,
-            // BorderRadius.vertical - rounds only the top corners of the sheet
-            // Source: https://api.flutter.dev/flutter/painting/BorderRadius/BorderRadius.vertical.html
             borderRadius: BorderRadius.vertical(
               top: Radius.circular(AppRadii.xl),
             ),
           ),
           child: Column(
             children: [
-              // drag handle
+              // Drag handle
               const SizedBox(height: 12),
-              // drag handle indicator bar
               Container(
                 width: 40,
                 height: 4,
@@ -994,14 +911,9 @@ class _AddEventSheetState extends State<_AddEventSheet> {
               ),
               const Divider(),
               Expanded(
-                // SingleChildScrollView - makes content scrollable when it overflows
-                // Source: https://api.flutter.dev/flutter/widgets/SingleChildScrollView-class.html
                 child: SingleChildScrollView(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                  // Form widget with validation: https://www.geeksforgeeks.org/flutter-form-validation/
-                  // Form - groups TextFormFields and manages validation together
-                  // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
                   child: Form(
                     key: _formKey,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1028,9 +940,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                         ),
 
                         const _FormSectionHeader('Classification'),
-                        // DropdownButtonFormField (form-integrated dropdown selector): https://www.geeksforgeeks.org/flutter/flutter-dropdownbutton-widget/
-                        // DropdownButtonFormField - a dropdown that integrates with Form validation
-                        // Tutorial: https://www.geeksforgeeks.org/dropdownbuttonformfield-in-flutter/
                         _DropdownField(
                           label: 'Category *',
                           value: _category,
@@ -1071,7 +980,8 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                               : null,
                         ),
 
-                        // age range row
+                        // Age range. Slider tutorial:
+                        // https://www.geeksforgeeks.org/flutter/flutter-slider-and-rangeslide/
                         const SizedBox(height: 8),
                         const Text(
                           'Age Range',
@@ -1090,9 +1000,6 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Slider (select a value from a range): https://www.geeksforgeeks.org/flutter/flutter-slider-widget/
-                        // Slider - lets the user pick a value by dragging
-                        // Tutorial: https://www.geeksforgeeks.org/flutter-slider-widget/
                         Row(
                           children: [
                             Expanded(
@@ -1219,8 +1126,6 @@ class _FormSectionHeader extends StatelessWidget {
   }
 }
 
-// TextFormField wrapped in a reusable widget to keep the form code tidy
-// Tutorial: https://docs.flutter.dev/cookbook/forms/validation
 class _SheetField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -1249,8 +1154,6 @@ class _SheetField extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      // InputDecoration - controls the label, hint, fill colour, and border style
-      // Source: https://api.flutter.dev/flutter/material/InputDecoration-class.html
       child: TextFormField(
         controller: controller,
         keyboardType: resolvedKeyboardType,
@@ -1263,8 +1166,6 @@ class _SheetField extends StatelessWidget {
   }
 }
 
-// DropdownButtonFormField wrapped in a reusable widget
-// Tutorial: https://www.geeksforgeeks.org/dropdownbuttonformfield-in-flutter/
 class _DropdownField extends StatelessWidget {
   final String label;
   final String value;
@@ -1289,8 +1190,6 @@ class _DropdownField extends StatelessWidget {
           labelText: label,
           contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
         ),
-        // .map().toList() converts each string into a DropdownMenuItem
-        // Source: https://dart.dev/libraries/dart-core#lists
         items: items
             .map(
               (option) => DropdownMenuItem(value: option, child: Text(option)),

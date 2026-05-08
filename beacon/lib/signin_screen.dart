@@ -4,6 +4,9 @@ import 'org_register_choice_screen.dart';
 import 'org_dashboard_screen.dart';
 import 'services/auth_service.dart';
 
+// Sign-in form for already-approved orgs.
+// Form validation: https://www.geeksforgeeks.org/flutter/form-validation-in-flutter/
+// AlertDialog basics: https://www.geeksforgeeks.org/flutter/alert-dialog-box-in-flutter/
 // StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -13,19 +16,20 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  // GlobalKey<FormState> (identify and validate a Form): https://www.geeksforgeeks.org/flutter-form-validation/
+  // GlobalKey<FormState> lets us call validate() across all the fields.
+  // Tutorial: https://www.geeksforgeeks.org/flutter/form-validation-in-flutter/
   final _form_key = GlobalKey<FormState>();
-  // TextEditingController (read and control TextField input): https://www.geeksforgeeks.org/retrieve-data-from-textfields-in-flutter/
+  // TextEditingController gives us read/write access to the field's text.
+  // Tutorial: https://www.geeksforgeeks.org/flutter/retrieve-data-from-textfields-in-flutter/
   final _email_controller = TextEditingController();
   final _password_controller = TextEditingController();
 
-  // bool state variables to track UI state: https://www.geeksforgeeks.org/dart/dart-data-types/
   bool _password_visible = false;
   bool _is_loading = false;
 
-  // showDialog / AlertDialog (modal dialog for status messages): https://www.geeksforgeeks.org/flutter/flutter-alertdialog-widget/
-  // showDialog - displays a Material dialog above the current screen
-  // Tutorial: https://www.geeksforgeeks.org/flutter-alertdialog-widget/
+  // Shows a friendly status dialog. `isError` just swaps the OK button's color
+  // so failed sign-ins read as red instead of brand green.
+  // showDialog tutorial: https://www.geeksforgeeks.org/flutter/flutter-dialogs/
   Future<void> _showStatusDialog({
     required String title,
     required String message,
@@ -35,8 +39,6 @@ class _SignInScreenState extends State<SignInScreen> {
     return showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        // RoundedRectangleBorder - gives the dialog rounded corners
-        // Source: https://api.flutter.dev/flutter/painting/RoundedRectangleBorder-class.html
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadii.lg),
         ),
@@ -82,7 +84,8 @@ class _SignInScreenState extends State<SignInScreen> {
     return null;
   }
 
-  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
+  // Free up the controllers when the widget leaves the tree.
+  // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _email_controller.dispose();
@@ -90,11 +93,8 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  // async/await and try-catch for error handling: https://www.geeksforgeeks.org/using-await-async-in-dart/
   void _signIn() async {
-    // Form validation: https://www.geeksforgeeks.org/flutter-form-validation/
     if (!_form_key.currentState!.validate()) return;
-    // setState (trigger UI rebuild): https://www.geeksforgeeks.org/flutter/flutter-state-management/
     setState(() => _is_loading = true);
 
     try {
@@ -107,7 +107,6 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
 
       if (user != null) {
-        // Navigator.pushReplacement (replace current route): https://www.geeksforgeeks.org/routes-and-navigator-in-flutter/
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const OrgDashboardScreen()),
@@ -148,22 +147,20 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    // Scaffold + AppBar give the page its standard structure.
+    // Scaffold tutorial: https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    // AppBar tutorial: https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
     return Scaffold(
-      // AppBar (top navigation bar): https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
       appBar: AppBar(
         title: const Text(
           'Sign in',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
-      // SafeArea (avoid system UI intrusions): https://www.geeksforgeeks.org/flutter/flutter-safearea-widget/
       body: SafeArea(
         child: Center(
-          // ConstrainedBox (limit widget dimensions): https://www.geeksforgeeks.org/flutter/constrainedbox-widget-in-flutter/
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               child: Form(

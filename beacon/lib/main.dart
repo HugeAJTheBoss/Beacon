@@ -1,10 +1,9 @@
-// Sources also used in auth_service.dart / database_service.dart
-// Firebase core setup:     https://firebase.google.com/docs/flutter/setup
-// FirebaseAuth/Firestore:  https://firebase.flutter.dev/docs/overview
+// Entry point and welcome screen for Beacon.
+// Firebase setup reference: https://firebase.google.com/docs/flutter/setup
+// Material design widgets in Flutter: https://www.geeksforgeeks.org/flutter/flutter-material-design/
 
 import 'dart:async';
 
-// Flutter Material widgets such asMaterialApp, Scaffold, AppBar, Buttons inspired by https://www.geeksforgeeks.org/flutter/flutter-material-design/
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'app_theme.dart';
@@ -17,8 +16,7 @@ import 'services/auth_service.dart';
 import 'preferences_service.dart';
 
 
-// ─── Featured Highlights (marketing copy, not Firestore data) ────────────────
-
+// Static marketing copy for the welcome carousel (not Firestore data).
 const List<Map<String, String>> _featuredHighlights = [
   {
     'title': 'Robotics Clubs',
@@ -41,34 +39,24 @@ const List<Map<String, String>> _featuredHighlights = [
 ];
 
 
-// ─── App Entry ───────────────────────────────────────────────────────────────
-
-// async/await for asynchronous Dart operations: https://www.geeksforgeeks.org/dart/dart-asynchronous-programming-futures/
 void main() async {
-  // WidgetsFlutterBinding (binds Flutter engine before runApp): https://www.geeksforgeeks.org/flutter/flutter-widgetsflutterbinding/
-  // ensures Flutter engine is ready before calling native code
-  // Tutorial: https://www.geeksforgeeks.org/flutter-main-dart-file/
+  // ensureInitialized must run before any plugin call (e.g. Firebase).
   WidgetsFlutterBinding.ensureInitialized();
-  // Firebase.initializeApp() - initializes Firebase using platform-specific options
-  // Source: https://firebase.google.com/docs/flutter/setup
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const BeaconApp());
 }
 
-// StatelessWidget - used here because BeaconApp itself holds no mutable state
-// Tutorial: https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
-// https://www.geeksforgeeks.org/flutter/flutter-stateless-widget/
+// MaterialApp wires up routing, theming, and the home widget.
+// Tutorial: https://www.geeksforgeeks.org/flutter/materialapp-class-in-flutter/
+// StatelessWidget: https://www.geeksforgeeks.org/flutter/flutter-stateless-widget/
 class BeaconApp extends StatelessWidget {
   const BeaconApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // MaterialApp - top-level widget that sets up navigation, theming, and title
-    // Tutorial: https://www.geeksforgeeks.org/flutter-materialapp-widget/
-    // https://www.geeksforgeeks.org/flutter/flutter-material-design/
     return MaterialApp(
       title: 'Beacon',
-      debugShowCheckedModeBanner: false, // hides the debug banner in the corner
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const _StartupGate(),
     );
@@ -76,12 +64,10 @@ class BeaconApp extends StatelessWidget {
 }
 
 
-// ─── Session-Restore Gate (integration backend logic) ────────────────────────
-
+// Decides which screen to show on launch based on saved prefs and auth state.
 class _StartupGate extends StatelessWidget {
   const _StartupGate();
 
-  // Decides which screen to open on launch based on saved preferences and auth state
   Future<Widget> _resolveInitialScreen() async {
     final restoreStudent = await PreferencesService.shouldRestoreStudentOnLaunch();
     if (restoreStudent) return const _RestoreStudentEntry();
@@ -97,16 +83,12 @@ class _StartupGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FutureBuilder - rebuilds the widget when an async Future completes
-    // Tutorial: https://www.geeksforgeeks.org/flutter-futurebuilder-widget/
-    // FutureBuilder (build UI based on a Future's result): https://www.geeksforgeeks.org/flutter/flutter-futurebuilder-widget/
+    // FutureBuilder rebuilds the UI whenever its Future resolves.
+    // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-futurebuilder-widget/
     return FutureBuilder<Widget>(
       future: _resolveInitialScreen(),
       builder: (context, snapshot) {
-        // ConnectionState.waiting - Future is still running, show a loading spinner
-        // Source: https://api.flutter.dev/flutter/widgets/ConnectionState.html
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         return snapshot.data ?? const WelcomeScreen();
@@ -115,10 +97,10 @@ class _StartupGate extends StatelessWidget {
   }
 }
 
-// StatefulWidget used here because we need to trigger a Navigator.push exactly once after the widget is mounted
-// Source: https://api.flutter.dev/flutter/widgets/StatefulWidget-class.html
-// Tutorial: https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
-// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
+// Pushes the StudentScreen once after the first frame so the WelcomeScreen
+// stays beneath it in the navigator stack (lets the user back out to home).
+// StatefulWidget basics: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
+// Routes and Navigator: https://www.geeksforgeeks.org/flutter/routes-and-navigator-in-flutter/
 class _RestoreStudentEntry extends StatefulWidget {
   const _RestoreStudentEntry();
   @override
@@ -126,22 +108,15 @@ class _RestoreStudentEntry extends StatefulWidget {
 }
 
 class _RestoreStudentEntryState extends State<_RestoreStudentEntry> {
-  bool _pushed = false; // guard flag to prevent pushing the route more than once
+  bool _pushed = false;
 
   @override
   void didChangeDependencies() {
-    // Source: https://api.flutter.dev/flutter/widgets/State/didChangeDependencies.html
     super.didChangeDependencies();
     if (_pushed) return;
     _pushed = true;
-    // addPostFrameCallback (run code after the first frame is rendered): https://www.geeksforgeeks.org/flutter/flutter-addpostframecallback/
-    // addPostFrameCallback - runs the callback after the current frame is drawn,
-    // ensuring the widget tree is fully built before navigating
-    // Tutorial: https://www.geeksforgeeks.org/flutter-addpostframecallback/
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // Source: https://api.flutter.dev/flutter/material/MaterialPageRoute-class.html
-      // https://www.geeksforgeeks.org/navigation-and-routing-in-flutter/
       Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentScreen()));
     });
   }
@@ -150,10 +125,7 @@ class _RestoreStudentEntryState extends State<_RestoreStudentEntry> {
   Widget build(BuildContext context) => const WelcomeScreen();
 }
 
-// StatefulWidget used here because we need to trigger a Navigator.push exactly once after the widget is mounted
-// Source: https://api.flutter.dev/flutter/widgets/StatefulWidget-class.html
-// Tutorial: https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
-// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
+// Same idea as _RestoreStudentEntry but for the org dashboard.
 class _RestoreOrgEntry extends StatefulWidget {
   const _RestoreOrgEntry();
   @override
@@ -170,8 +142,6 @@ class _RestoreOrgEntryState extends State<_RestoreOrgEntry> {
     _pushed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // Navigator.push from https://www.geeksforgeeks.org/navigation-and-routing-in-flutter/
-      // Source: https://api.flutter.dev/flutter/material/MaterialPageRoute-class.html
       Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgDashboardScreen()));
     });
   }
@@ -180,9 +150,7 @@ class _RestoreOrgEntryState extends State<_RestoreOrgEntry> {
   Widget build(BuildContext context) => const WelcomeScreen();
 }
 
-// ─── Welcome Screen ──────────────────────────────────────────────────────────
 
-// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -191,13 +159,11 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  // PageController: https://www.geeksforgeeks.org/dart/pageview-widget-in-flutter/
   final _highlightsPageController = PageController(viewportFraction: 0.88);
   int _activeHighlightIndex = 0;
 
-  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
-  // Controllers must be disposed to free memory when the widget is removed
-  // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
+  // Controllers must be disposed to free their resources.
+  // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _highlightsPageController.dispose();
@@ -230,7 +196,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       height: 1.08,
     );
 
-    // Row and Column layout: https://www.geeksforgeeks.org/dart/row-and-column-widgets-in-flutter-with-example/
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -252,12 +217,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // MediaQuery for getting screen size info: https://www.geeksforgeeks.org/flutter-managing-the-mediaquery-object/
+    // MediaQuery exposes screen dimensions for responsive layout.
+    // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-managing-the-mediaquery-object/
     final isTablet = MediaQuery.of(context).size.width >= AppLayout.tabletBreakpoint;
 
-    //Scaffold class https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    // Scaffold gives us the standard app bar + body shell.
+    // Tutorial: https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    // AppBar: https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
     return Scaffold(
-      // AppBar (top navigation bar UI): https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
       appBar: AppBar(
         title: const Text(
           'Beacon | SHAPING FUTURES, ONE EVENT AT A TIME',
@@ -269,13 +236,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             const SizedBox(width: AppSpacing.sm),
             _NavSecondaryButton(label: 'Register Organization', onTap: _registerOrganization),
             const SizedBox(width: 6),
-            // TextButton widget: https://www.geeksforgeeks.org/flutter/flutter-textbutton-widget/
             TextButton(onPressed: _signIn, child: const Text('Sign In')),
             const SizedBox(width: AppSpacing.sm),
           ] else ...[
             // TextButton: https://www.geeksforgeeks.org/flutter/flutter-textbutton-widget/
             TextButton(onPressed: _browseEvents, child: const Text('Browse')),
-            // PopupMenuButton for overflow menu: https://www.geeksforgeeks.org/flutter/flutter-pop-up-menu/
+            // PopupMenuButton (overflow menu): https://www.geeksforgeeks.org/flutter/flutter-pop-up-menu/
             PopupMenuButton<String>(
               icon: const Icon(Icons.menu_rounded),
               onSelected: _handleMenuSelection,
@@ -287,7 +253,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ],
         ],
       ),
-      // LayoutBuilder (responsive layout using constraints): https://www.geeksforgeeks.org/flutter-layoutbuilder-widget/
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isDesktop = constraints.maxWidth >= AppLayout.desktopBreakpoint;
@@ -296,7 +261,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ? 48.0
               : (isTabletLayout ? 28.0 : AppSpacing.lg);
 
-          // SingleChildScrollView scrollable text: https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
           return SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               contentHorizontalPadding,
@@ -327,13 +291,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 14),
+                // PageView is a swipeable horizontal carousel.
+                // Tutorial: https://www.geeksforgeeks.org/dart/pageview-widget-in-flutter/
                 SizedBox(
                   height: isDesktop ? 210 : 190,
                   child: PageView.builder(
                     controller: _highlightsPageController,
                     itemCount: _featuredHighlights.length,
                     onPageChanged: (index) {
-                      // setState: https://www.geeksforgeeks.org/flutter/flutter-state-management/
                       setState(() => _activeHighlightIndex = index);
                     },
                     itemBuilder: (context, index) {
@@ -350,7 +315,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     _featuredHighlights.length,
-                    // AnimatedContainer: https://www.geeksforgeeks.org/flutter/flutter-animatedcontainer-widget/
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 220),
                       margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -395,6 +359,7 @@ class _NavPrimaryButton extends StatelessWidget {
   }
 }
 
+// OutlinedButton tutorial: https://www.geeksforgeeks.org/flutter/flutter-material-widget-outlined-button-class/
 class _NavSecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
@@ -404,7 +369,6 @@ class _NavSecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: AppLayout.navBarActionButtonHeight,
-      // OutlinedButton (border-style button): https://www.geeksforgeeks.org/flutter/flutter-material-widget-outlined-button-class/
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
@@ -425,10 +389,8 @@ class _HeroGraphicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Container: https://www.geeksforgeeks.org/flutter/flutter-working-with-layouts/
     return Container(
       height: height,
-      // BoxDecoration: https://www.geeksforgeeks.org/flutter/flutter-boxdecoration-widget/
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
         boxShadow: [
@@ -439,14 +401,11 @@ class _HeroGraphicCard extends StatelessWidget {
           ),
         ],
       ),
-      // ClipRRect (rounded clipping of child widgets): https://www.geeksforgeeks.org/flutter/cliprect-widget-in-flutter/
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadii.xxl),
-        // Stack for layering widgets on top of each other: https://www.geeksforgeeks.org/flutter/flutter-stack-widget/
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Image.asset (for loading local images): https://www.geeksforgeeks.org/dart/how-to-add-images-in-flutter-app/
             Image.asset(
               AppAssets.stemLogoPlaceholder,
               fit: BoxFit.cover,
@@ -471,7 +430,8 @@ class _HeroGraphicCard extends StatelessWidget {
   }
 }
 
-//Carousel Card
+// Single card used in the featured-opportunities carousel.
+// Row + Column layout: https://www.geeksforgeeks.org/dart/row-and-column-widgets-in-flutter-with-example/
 class _CarouselCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -493,10 +453,8 @@ class _CarouselCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Expanded (flex layout to fill available space): https://www.geeksforgeeks.org/flutter/flutter-row-column-and-expanded-widgets/
           Expanded(
             flex: 3,
-            // ClipRRect (rounded clipping of child widgets): https://www.geeksforgeeks.org/flutter/flutter-cliprrect-widget/
             child: ClipRRect(
               borderRadius: const BorderRadius.horizontal(left: Radius.circular(AppRadii.card)),
               child: Image.asset(
@@ -507,7 +465,6 @@ class _CarouselCard extends StatelessWidget {
               ),
             ),
           ),
-          // Expanded (flex layout to fill available space): https://www.geeksforgeeks.org/flutter/flutter-row-column-and-expanded-widgets/
           Expanded(
             flex: 4,
             child: Padding(

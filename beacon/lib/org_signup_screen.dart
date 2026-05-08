@@ -3,6 +3,11 @@ import 'app_theme.dart';
 import 'signin_screen.dart';
 import 'services/auth_service.dart';
 
+// Email-based signup form for new orgs. The form runs through standard
+// validators before handing the data off to AuthService.registerOrg.
+// Form tutorial: https://www.geeksforgeeks.org/flutter/flutter-build-a-form/
+// Validation tutorial: https://www.geeksforgeeks.org/flutter/form-validation-in-flutter/
+// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class OrgSignupScreen extends StatefulWidget {
   const OrgSignupScreen({super.key});
 
@@ -22,10 +27,10 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   bool _passwordVisible = false;
   bool _isLoading = false;
 
+  // dispose() releases the text controllers' resources.
+  // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
-    // Controllers must be disposed to free memory when the widget is removed
-    // Source: https://api.flutter.dev/flutter/widgets/TextEditingController/dispose.html
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -36,8 +41,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   }
 
   void _submitForm() async {
-    // _formKey.currentState!.validate() - runs all validator functions in the Form
-    // Source: https://api.flutter.dev/flutter/widgets/FormState/validate.html
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
@@ -51,9 +54,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
     );
 
     setState(() => _isLoading = false);
-    if (!mounted) return; // prevents acting on a disposed widget
-    // Navigator.pushReplacement - replaces the current route so the user can't go back to the form
-    // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/pushReplacement.html
+    if (!mounted) return;
+    // Replace so the user can't navigate back into the form after submission.
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const PendingApprovalScreen()),
@@ -67,68 +69,69 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   String? _validateOrgEmail(String? value) {
     final email = value?.trim() ?? '';
     if (email.isEmpty) return 'Email is required';
-    
-    // RFC 5322 simplified email pattern
+
+    // Simplified RFC 5322-ish pattern. Catches the obvious typos without
+    // pretending to be a full spec-compliant validator.
     final emailRegex = RegExp(
       r'^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
     );
-    
+
     if (!emailRegex.hasMatch(email)) {
       return 'Enter a valid email address';
     }
-    
-    // Check for organization email (not personal)
+
+    // Reject the most common personal-email domains so orgs don't sign up
+    // with a Gmail/Yahoo address.
     final commonPersonalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com'];
     final domain = email.split('@').last.toLowerCase();
     if (commonPersonalDomains.contains(domain)) {
       return 'Please use your organization email, not a personal email';
     }
-    
+
     return null;
   }
 
   String? _validateRegistrationNumber(String? value) {
     final regNum = value?.trim() ?? '';
     if (regNum.isEmpty) return 'Registration number is required';
-    
-    // Accept various formats: 12-3456789, 123456789, XX-XXXXXXX, etc.
-    // At least 7-9 characters/digits
+
+    // Accept a few common formats: 12-3456789, 123456789, XX-XXXXXXX, etc.
     final cleanedNum = regNum.replaceAll('-', '').replaceAll(RegExp(r'\s'), '');
     if (cleanedNum.length < 7 || cleanedNum.length > 15) {
       return 'Registration number should be 7-15 characters';
     }
-    
-    // Check for at least some alphanumeric content
+
     if (!RegExp(r'[a-zA-Z0-9]').hasMatch(cleanedNum)) {
       return 'Registration number must contain alphanumeric characters';
     }
-    
+
     return null;
   }
 
   String? _validateWebsiteUrl(String? value) {
     final url = value?.trim() ?? '';
     if (url.isEmpty) return 'Website URL is required';
-    
+
     final normalizedUrl = url.startsWith('http://') || url.startsWith('https://')
         ? url
         : 'https://$url';
-    
+
     final uri = Uri.tryParse(normalizedUrl);
     if (uri == null || uri.host.isEmpty) {
       return 'Enter a valid website URL';
     }
-    
-    // Check for valid domain structure
+
     if (!uri.host.contains('.')) {
       return 'Domain must contain at least one dot (e.g., example.com)';
     }
-    
+
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Scaffold tutorial: https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
+    // AppBar tutorial: https://www.geeksforgeeks.org/flutter/flutter-appbar-widget/
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -137,8 +140,8 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
         ),
       ),
       body: SafeArea(
-        // SingleChildScrollView - makes the form scrollable when the keyboard is open
-        // Tutorial: https://www.geeksforgeeks.org/flutter-single-child-scroll-view/
+        // Scrollable so the form stays usable when the keyboard pops up.
+        // SingleChildScrollView usage: https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Form(
@@ -155,8 +158,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 28),
-                // OutlinedButton.icon - outlined button with a leading icon
-                // Tutorial: https://www.geeksforgeeks.org/flutter-outlinedbutton-widget/
+                // OutlinedButton tutorial: https://www.geeksforgeeks.org/flutter/flutter-material-widget-outlined-button-class/
                 OutlinedButton.icon(
                   onPressed: _signUpWithGoogle,
                   icon: const Icon(Icons.g_mobiledata, size: 24),
@@ -164,8 +166,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.title,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    // RoundedRectangleBorder - gives the button rounded corners
-                    // Source: https://api.flutter.dev/flutter/painting/RoundedRectangleBorder-class.html
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -173,8 +173,7 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Row with Dividers - common Flutter pattern for an "or" separator line
-                // Tutorial: https://www.geeksforgeeks.org/flutter-divider-widget/
+                // "or sign up with email" divider row.
                 Row(
                   children: const [
                     Expanded(child: Divider()),
@@ -206,15 +205,11 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  // TextFormField with obscureText - hides password characters
-                  // Tutorial: https://www.geeksforgeeks.org/flutter-textformfield/
                   child: TextFormField(
                     controller: _passwordController,
-                    obscureText: !_passwordVisible, // toggles password visibility
+                    obscureText: !_passwordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      // suffixIcon with IconButton - tapping the eye icon toggles visibility
-                      // Source: https://api.flutter.dev/flutter/material/IconButton-class.html
                       suffixIcon: IconButton(
                         icon: Icon(
                           _passwordVisible
@@ -246,8 +241,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  // Container with withValues(alpha:) - tinted info banner using primary color at low opacity
-                  // Source: https://api.flutter.dev/flutter/dart-ui/Color/withValues.html
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -292,8 +285,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
-                  // CircularProgressIndicator - spinner shown while the async submit is running
-                  // Tutorial: https://www.geeksforgeeks.org/flutter-circular-progress-indicator/
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
@@ -310,8 +301,6 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
                         ),
                 ),
                 const SizedBox(height: 16),
-                // TextButton - flat button used for low-emphasis actions
-                // Tutorial: https://www.geeksforgeeks.org/flutter-textbutton-widget/
                 TextButton(
                   onPressed: () => Navigator.push(
                     context,
@@ -331,8 +320,9 @@ class _OrgSignupScreenState extends State<OrgSignupScreen> {
   }
 }
 
-// Reusable TextFormField wrapper to avoid repeating decoration boilerplate (DRY principle)
-// Source: https://dart.dev/effective-dart/design
+// Reusable TextFormField wrapper so we don't repeat the same decoration
+// boilerplate at every field.
+// TextFormField + validation walkthrough: https://www.geeksforgeeks.org/flutter/form-validation-in-flutter/
 class _FormField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -354,8 +344,6 @@ class _FormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      // TextFormField - a text input that integrates with Form validation
-      // Tutorial: https://docs.flutter.dev/cookbook/forms/validation
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
@@ -379,14 +367,10 @@ class PendingApprovalScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
-          // Column with mainAxisAlignment.center - centers content vertically on the screen
-          // Tutorial: https://www.geeksforgeeks.org/flutter-column-widget/
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Icon widget - displays a Material icon at a given size and color
-              // Tutorial: https://www.geeksforgeeks.org/flutter-icon-widget/
               const Icon(
                 Icons.hourglass_top_rounded,
                 size: 72,
@@ -414,8 +398,8 @@ class PendingApprovalScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                // Navigator.popUntil - pops all routes until the very first screen is reached
-                // Source: https://api.flutter.dev/flutter/widgets/NavigatorState/popUntil.html
+                // popUntil(...isFirst) returns the user all the way back to the
+                // welcome screen.
                 onPressed: () =>
                     Navigator.popUntil(context, (r) => r.isFirst),
                 child: const Text(

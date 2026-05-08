@@ -1,26 +1,13 @@
-// SharedPreferences (core storage used in this file)
-// https://pub.dev/packages/shared_preferences
-
-// Flutter official guide: Store key-value data locally
-// https://docs.flutter.dev/cookbook/persistence/key-value
-
-// Dart async/await (used for Future, async functions)
-// https://dart.dev/codelabs/async-await
-
-// Dart collections (Map, List, .where(), .map(), etc.)
-// https://dart.dev/guides/language/language-tour#collections
-
-// Dart DateTime (used for DOB storage + age calculation)
-// https://api.dart.dev/stable/dart-core/DateTime-class.html
-
-// Flutter architecture / separation of logic (service pattern idea)
-// https://docs.flutter.dev/development/data-and-backend/state-mgmt/simple
+// Local persistence for student-side filters and "remember me" flags.
+// SharedPreferences package: https://pub.dev/packages/shared_preferences
+// Flutter cookbook key-value storage: https://docs.flutter.dev/cookbook/persistence/key-value
+// Map operations in Dart: https://www.geeksforgeeks.org/dart/dart-programming-map/
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Simple wrapper around SharedPreferences for student settings.
-/// Works on web (localStorage), Android (SharedPreferences), iOS (NSUserDefaults).
-// Static class / utility class pattern in Dart: https://www.geeksforgeeks.org/dart-classes-and-objects/
+/// Thin wrapper around SharedPreferences for student settings.
+/// Backed by localStorage on web, SharedPreferences on Android, and
+/// NSUserDefaults on iOS.
 class PreferencesService {
   static const _keyDob = 'student_dob';
   static const _keyZip = 'student_zip';
@@ -32,7 +19,6 @@ class PreferencesService {
 
   static SharedPreferences? _prefs;
 
-  // Null-aware assignment operator (??=): https://www.geeksforgeeks.org/operators-in-dart/
   static Future<SharedPreferences> get _instance async {
     _prefs ??= await SharedPreferences.getInstance();
     return _prefs!;
@@ -84,7 +70,9 @@ class PreferencesService {
     return DateTime.tryParse(raw);
   }
 
-  /// Calculate current age from stored DOB.
+  /// Calculates the user's current age from their stored DOB. Falls back to a
+  /// reasonable default (14) when no DOB is set, and clamps the result so the
+  /// age slider in the UI always stays in a sensible range.
   static double calculateAge(DateTime? dob) {
     if (dob == null) return 14;
     final now = DateTime.now();
@@ -108,7 +96,7 @@ class PreferencesService {
     return prefs.getString(_keyZip) ?? '';
   }
 
-  // --- Types (Club, Event, Volunteering) ---
+  // Opportunity types (Club, Event, Volunteering)
 
   static Future<void> saveEnabledTypes(Map<String, bool> types) async {
     final prefs = await _instance;
@@ -123,7 +111,6 @@ class PreferencesService {
     final prefs = await _instance;
     final all = ['Club', 'Event', 'Volunteering'];
     final saved = prefs.getStringList(_keyTypes);
-    // Collection-if and spread operators in Dart: https://www.geeksforgeeks.org/dart-collection-if-and-collection-for/
     if (saved == null) return {for (var t in all) t: false};
     return {for (var t in all) t: saved.contains(t)};
   }
@@ -150,8 +137,7 @@ class PreferencesService {
     return {for (var c in all) c: saved.contains(c)};
   }
 
-  // Get all at once
-
+  // Convenience: read everything the student screen needs in one go.
   static Future<Map<String, dynamic>> getAll() async {
     final setupDone = await isSetupComplete();
     if (!setupDone) return {'setupDone': false};
@@ -167,8 +153,7 @@ class PreferencesService {
     };
   }
 
-  //Save all at once
-
+  // Convenience: write everything the onboarding sheet collects in one go.
   static Future<void> saveAll({
     required DateTime dob,
     required String zip,

@@ -1,20 +1,14 @@
-// Tutorials/sources used for this screen:
-// StatefulWidget lifecycle:       https://www.geeksforgeeks.org/flutter-stateful-vs-stateless-widgets/
-// Modal bottom sheet patterns:    https://www.geeksforgeeks.org/flutter-modalBottomSheet/
-// DraggableScrollableSheet:       https://www.geeksforgeeks.org/draggablescrollablesheet-in-flutter/
-// StreamBuilder usage:            https://www.geeksforgeeks.org/flutter-streambuilder-widget/
-// ListView.builder usage:         https://www.geeksforgeeks.org/flutter-listview-builder/
-// FilterChip usage:               https://www.geeksforgeeks.org/filter-chip-in-flutter/
-// ChoiceChip usage:               https://www.geeksforgeeks.org/chip-widgets-in-flutter/
-// Date picker pattern:            https://www.geeksforgeeks.org/flutter-set-and-get-date-time-in-datepicker/
-// url_launcher package:           https://pub.dev/packages/url_launcher
-// Flutter mounted check (needed): https://api.flutter.dev/flutter/widgets/BuildContext/mounted.html
+// Student-facing browse screen: filter chips, opportunity grid, and the
+// onboarding sheet that captures DOB and interests on first launch.
+// url_launcher package: https://pub.dev/packages/url_launcher
+// StreamBuilder tutorial: https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
+// DraggableScrollableSheet tutorial: https://www.geeksforgeeks.org/flutter/flutter-draggable-scrollable-sheet/
+// Modal bottom sheet tutorial: https://www.geeksforgeeks.org/flutter/flutter-modal-bottom-sheet/
+// Date picker tutorial: https://www.geeksforgeeks.org/flutter/flutter-set-min-and-max-selectable-dates-in-datepicker/
 
 import 'package:flutter/material.dart';
-// FilteringTextInputFormatter (restrict text input to certain characters): https://www.geeksforgeeks.org/flutter/flutter-creating-number-input-field/
 import 'package:flutter/services.dart';
 
-// url_launcher (open URLs in external browser or app): https://www.geeksforgeeks.org/flutter/flutter-url-launcher/
 import 'package:url_launcher/url_launcher.dart';
 import 'link_opener_stub.dart' if (dart.library.html) 'link_opener_web.dart';
 import 'app_theme.dart';
@@ -24,7 +18,7 @@ import 'services/database_service.dart';
 const double _browseDesktopBreakpoint = 1080;
 const double _browseTabletBreakpoint = 760;
 
-// switch statement used for color mapping: https://www.geeksforgeeks.org/switch-case-in-dart/
+// Switch statement reference: https://www.geeksforgeeks.org/dart/switch-case-in-dart/
 Color _typeAccentColor(String type) {
   switch (type) {
     case 'Club':
@@ -42,6 +36,9 @@ Color _typeTintColor(String type) {
 }
 
 
+// Opens an organization's website in a new tab/external browser. On web we
+// prefer window.open (avoids the popup-blocked behaviour url_launcher hits on
+// some browsers); everywhere else we fall back to url_launcher.
 Future<void> _openOrganizationWebsiteLink({
   required BuildContext context,
   required String opportunityId,
@@ -88,7 +85,6 @@ Future<void> _openOrganizationWebsiteLink({
   }
 }
 
-// StatefulWidget: https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/
 class StudentScreen extends StatefulWidget {
   const StudentScreen({super.key});
   @override
@@ -100,11 +96,9 @@ class _StudentScreenState extends State<StudentScreen> {
   String _zip = '';
   DateTime? _dob;
   bool _loading = true;
-  // ScrollController (control scrollable widgets programmatically): https://www.geeksforgeeks.org/flutter/flutter-scroll-down-to-bottom-or-top-of-list-in-listview/
   final ScrollController _browseScrollController = ScrollController();
   Map<String, dynamic>? _selectedEventData;
 
-  // Map (key-value pairs for filter state): https://www.geeksforgeeks.org/dart-programming-map/
   final Map<String, bool> _types = {
     'Club': false,
     'Event': false,
@@ -138,14 +132,15 @@ class _StudentScreenState extends State<StudentScreen> {
     return '$month/$day/${date.year}';
   }
 
-  // dispose() for memory leak prevention: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
+  // dispose tutorial: https://www.geeksforgeeks.org/flutter/flutter-dispose-method-with-example/
   @override
   void dispose() {
     _browseScrollController.dispose();
     super.dispose();
   }
 
-  // initState (called once when the widget is first created): https://www.geeksforgeeks.org/flutter/flutter-initstate/
+  // initState runs once when the widget is inserted in the tree.
+  // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-initstate/
   @override
   void initState() {
     super.initState();
@@ -170,7 +165,8 @@ class _StudentScreenState extends State<StudentScreen> {
       } else {
         setState(() => _loading = false);
         if (mounted) {
-          // Show onboarding setup after first frame so Scaffold context is ready.
+          // Show onboarding after the first frame so the Scaffold context is
+          // ready to host a modal bottom sheet.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _showWelcomePopup();
           });
@@ -193,7 +189,8 @@ class _StudentScreenState extends State<StudentScreen> {
     }
   }
 
-  // showModalBottomSheet (slide-up panel from bottom): https://www.geeksforgeeks.org/flutter/flutter-modal-bottom-sheet/
+  // First-launch onboarding sheet. Captures DOB plus initial interests/types
+  // before the student lands on the browse screen.
   void _showWelcomePopup() {
     DateTime? draftBirthDate;
     final draftOpportunityTypes = Map<String, bool>.from(_types);
@@ -206,10 +203,10 @@ class _StudentScreenState extends State<StudentScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        // StatefulBuilder (rebuild only the bottom sheet widget subtree): https://www.geeksforgeeks.org/flutter/flutter-stateful-widget/  https://api.flutter.dev/flutter/widgets/StatefulBuilder-class.html
+        // StatefulBuilder lets us rebuild just the sheet's subtree without
+        // calling setState on the parent screen.
         return StatefulBuilder(
           builder: (context, setModalState) {
-            // DraggableScrollableSheet (sheet that can be dragged to resize): https://www.geeksforgeeks.org/flutter/flutter-draggable-scrollable-sheet/
             return DraggableScrollableSheet(
               initialChildSize: 0.92,
               minChildSize: 0.92,
@@ -268,7 +265,7 @@ class _StudentScreenState extends State<StudentScreen> {
                         children: [
                           const SizedBox(height: 16),
 
-                          //  Date of Birth
+                          // Date of Birth
                           const Text(
                             'Date of Birth',
                             style: TextStyle(
@@ -278,7 +275,6 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          // showDatePicker (built-in calendar date picker): https://www.geeksforgeeks.org/flutter/flutter-set-min-and-max-selectable-dates-in-datepicker//
                           InkWell(
                             onTap: () async {
                               final picked = await showDatePicker(
@@ -421,7 +417,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- Interests ---
+                          // Interests
                           const Text(
                             'What are you interested in?',
                             style: TextStyle(
@@ -431,8 +427,8 @@ class _StudentScreenState extends State<StudentScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          // Wrap (flow layout that wraps children): https://www.geeksforgeeks.org/wrap-widget-in-flutter/
-                          // FilterChip (toggleable chip for filters): https://api.flutter.dev/flutter/material/FilterChip-class.html
+                          // Wrap layout: https://www.geeksforgeeks.org/dart/wrap-widget-in-flutter/
+                          // FilterChip + Wrap pattern is shown in the chips guide.
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -462,7 +458,7 @@ class _StudentScreenState extends State<StudentScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // --- Types ---
+                          // Opportunity types
                           const Text(
                             'What type of opportunities?',
                             style: TextStyle(
@@ -539,7 +535,7 @@ class _StudentScreenState extends State<StudentScreen> {
                                 return;
                               }
 
-                              // Calculate age from DOB
+                              // Calculate age from DOB.
                               final now = DateTime.now();
                               double calculatedAge =
                                   (now.year - draftBirthDate!.year).toDouble();
@@ -585,7 +581,7 @@ class _StudentScreenState extends State<StudentScreen> {
     );
   }
 
-  
+
   void _showReportDialog(Map<String, dynamic> eventData) {
     String? selectedReportReason;
     final TextEditingController reportDetailsController =
@@ -1002,7 +998,6 @@ class _StudentScreenState extends State<StudentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold (basic page structure): https://www.geeksforgeeks.org/flutter/scaffold-class-in-flutter-with-examples/
     return Scaffold(
       drawerEdgeDragWidth: 0,
       backgroundColor: AppColors.background,
@@ -1030,7 +1025,9 @@ class _StudentScreenState extends State<StudentScreen> {
         ],
       ),
 
-      // Drawer (side panel navigation): https://www.geeksforgeeks.org/flutter/drawer-widget-in-flutter/
+      // Filter drawer (age slider + type/category checkboxes).
+      // Slider tutorial: https://www.geeksforgeeks.org/flutter/flutter-slider-and-rangeslide/
+      // CheckboxListTile tutorial: https://www.geeksforgeeks.org/flutter/flutter-checkboxlisttile/
       endDrawer: Drawer(
         backgroundColor: AppColors.card,
         surfaceTintColor: Colors.transparent,
@@ -1080,7 +1077,6 @@ class _StudentScreenState extends State<StudentScreen> {
                         const SizedBox(height: 8),
                         const _SectionTitle(title: 'Type'),
                         const SizedBox(height: 4),
-                        // CheckboxListTile (checkbox with label): https://www.geeksforgeeks.org/flutter-checkboxlisttile/
                         ..._types.keys.map(
                           (type) => CheckboxListTile(
                             title: Text(type),
@@ -1118,7 +1114,7 @@ class _StudentScreenState extends State<StudentScreen> {
 
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          // LayoutBuilder (responsive layout using constraints): https://www.geeksforgeeks.org/flutter/flutter-layoutbuilder-widget/
+          // LayoutBuilder gives us the parent's constraints for responsive UI.
           : LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
@@ -1130,7 +1126,7 @@ class _StudentScreenState extends State<StudentScreen> {
                 final columnWidth =
                   (availableWidth - (columnGap * (columns - 1))) / columns;
 
-                // SingleChildScrollView (scrollable content): https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
+                // SingleChildScrollView usage: https://www.geeksforgeeks.org/flutter/flutter-scrollable-text/
                 return SingleChildScrollView(
                   controller: _browseScrollController,
                   padding: EdgeInsets.fromLTRB(
@@ -1139,7 +1135,8 @@ class _StudentScreenState extends State<StudentScreen> {
                     horizontalPadding,
                     28,
                   ),
-                // StreamBuilder (rebuild UI on real-time Firestore stream): https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
+                  // StreamBuilder rebuilds whenever the Firestore stream emits.
+                  // Tutorial: https://www.geeksforgeeks.org/flutter/flutter-streambuilder-widget/
                   child: StreamBuilder<List<Map<String, dynamic>>>(
                     stream: DatabaseService().getOpportunities(),
                     builder: (context, snapshot) {
@@ -1232,6 +1229,9 @@ class _FilterLabel extends StatelessWidget {
   }
 }
 
+// Card-style tile rendered for every opportunity in the browse grid.
+// InkWell ripple feedback is documented in the Material design widget guide:
+// https://www.geeksforgeeks.org/flutter/flutter-material-design/
 class _EventCard extends StatelessWidget {
   final Map<String, dynamic> eventData;
   final VoidCallback onViewDetails;
@@ -1244,7 +1244,6 @@ class _EventCard extends StatelessWidget {
   });
 
   @override
-  // InkWell : https://www.geeksforgeeks.org/flutter/flutter-ripple-effect/
   Widget build(BuildContext context) {
     final type = (eventData['type'] as String?) ?? 'Event';
     final category =
