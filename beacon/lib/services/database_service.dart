@@ -27,7 +27,7 @@ class DatabaseService {
       'type': data['type'] ?? 'Event',
       'ageMin': data['ageMin'] ?? 0,
       'ageMax': data['ageMax'] ?? 99,
-      'status': 'Upcoming',
+      'status': data['status'] ?? 'Upcoming',
       'websiteVisits': websiteVisits,
     };
   }
@@ -38,6 +38,7 @@ class DatabaseService {
     required String location,
     required String date,
     required String cost,
+    required String status,
     required String link,
     required String description,
     required String category,
@@ -52,6 +53,7 @@ class DatabaseService {
       'location': location,
       'date': date,
       'cost': cost,
+      'status': status,
       'link': link,
       'description': description,
       'category': category,

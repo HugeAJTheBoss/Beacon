@@ -163,6 +163,7 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
             location: eventData['location'] as String,
             date: eventData['date'] as String,
             cost: eventData['cost'] as String,
+            status: eventData['status'] as String,
             link: eventData['link'] as String,
             description: eventData['description'] as String,
             category: eventData['category'] as String,
