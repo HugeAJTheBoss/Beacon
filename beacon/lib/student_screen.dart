@@ -613,6 +613,7 @@ class _StudentScreenState extends State<StudentScreen> {
 
     final eventData = _selectedEventData!;
     final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
+    final costLabel = _formatEventCost(eventData['cost'] as String?);
     final eventDescription =
         (eventData['description'] as String?)?.trim().isNotEmpty == true
         ? eventData['description'] as String
@@ -687,6 +688,21 @@ class _StudentScreenState extends State<StudentScreen> {
                     label: eventData['type'],
                     color: _typeAccentColor(eventData['type']),
                     isTypeLabel: true,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.payments_outlined,
+                    size: 16,
+                    color: AppColors.subtle,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    costLabel,
+                    style: const TextStyle(color: AppColors.subtle),
                   ),
                 ],
               ),
@@ -1105,6 +1121,7 @@ class _EventCard extends StatelessWidget {
         : 'General';
     final typeColor = _typeAccentColor(type);
     final typeTint = _typeTintColor(type);
+    final costLabel = _formatEventCost(eventData['cost'] as String?);
     final organizationWebsite = (eventData['link'] as String?)?.trim() ?? '';
     return Material(
       color: Colors.transparent,
@@ -1214,6 +1231,28 @@ class _EventCard extends StatelessWidget {
                         color: AppColors.subtle,
                       ),
                     ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.payments_outlined,
+                          size: 13,
+                          color: AppColors.subtle,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            costLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.subtle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -1277,6 +1316,14 @@ class _EventCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatEventCost(String? cost) {
+  final trimmedCost = cost?.trim() ?? '';
+  if (trimmedCost.isEmpty) {
+    return 'Cost not listed';
+  }
+  return trimmedCost;
 }
 
 class _Chip extends StatelessWidget {
