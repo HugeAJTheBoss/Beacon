@@ -582,149 +582,6 @@ class _StudentScreenState extends State<StudentScreen> {
   }
 
 
-  void _showReportDialog(Map<String, dynamic> eventData) {
-    String? selectedReportReason;
-    final TextEditingController reportDetailsController =
-        TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(AppRadii.xl),
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Report Event',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.title,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        eventData['title'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.subtle,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Why are you reporting this?',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.title,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children:
-                            [
-                                  'Incorrect information',
-                                  'Spam or scam',
-                                  'Inappropriate content',
-                                  'Duplicate listing',
-                                  'Other',
-                                ]
-                                .map(
-                                  (reason) => ChoiceChip(
-                                    label: Text(reason),
-                                    selected: selectedReportReason == reason,
-                                    selectedColor: AppColors.primary.withValues(
-                                      alpha: 0.15,
-                                    ),
-                                    labelStyle: TextStyle(
-                                      color: selectedReportReason == reason
-                                          ? AppColors.primary
-                                          : AppColors.title,
-                                      fontWeight: selectedReportReason == reason
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                    ),
-                                    onSelected: (_) {
-                                      setModalState(
-                                        () => selectedReportReason = reason,
-                                      );
-                                    },
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: reportDetailsController,
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          hintText: 'Add details (optional)',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadii.md),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadii.md),
-                            borderSide: const BorderSide(
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: selectedReportReason == null
-                              ? null
-                              : () {
-                                  Navigator.pop(context);
-
-                                  ScaffoldMessenger.of(
-                                    this.context,
-                                  ).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Report submitted for "${eventData['title']}"',
-                                      ),
-                                    ),
-                                  );
-                                },
-                          child: const Text(
-                            'Submit Report',
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildEventDetailsPanel(bool isDesktop) {
     if (_selectedEventData == null) {
       return Container(
@@ -1182,8 +1039,6 @@ class _StudentScreenState extends State<StudentScreen> {
                                     onViewDetails: () => setState(
                                       () => _selectedEventData = eventData,
                                     ),
-                                    onReport: () =>
-                                        _showReportDialog(eventData),
                                   ),
                                 );
                               }).toList(),
@@ -1235,12 +1090,10 @@ class _FilterLabel extends StatelessWidget {
 class _EventCard extends StatelessWidget {
   final Map<String, dynamic> eventData;
   final VoidCallback onViewDetails;
-  final VoidCallback onReport;
 
   const _EventCard({
     required this.eventData,
     required this.onViewDetails,
-    required this.onReport,
   });
 
   @override
@@ -1299,16 +1152,6 @@ class _EventCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                    IconButton(
-                      onPressed: onReport,
-                      icon: const Icon(
-                        Icons.flag_outlined,
-                        color: AppColors.subtle,
-                        size: 18,
-                      ),
-                      splashRadius: 18,
-                      tooltip: 'Report event',
                     ),
                   ],
                 ),
